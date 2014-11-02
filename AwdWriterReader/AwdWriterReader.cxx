@@ -10,13 +10,16 @@
 ****************************************************************************************/
 
 #include "AwdWriterReader.h"
+#include "Settings.h"
 
 // Create your own writer.
 // And your writer will get a pPluginID and pSubID.
-FbxWriter* CreateAwdWriter(FbxManager& pManager, FbxExporter& /*pExporter*/, int /*pSubID*/, int pPluginID)
+FbxWriter* CreateAwdWriter(FbxManager& pManager, FbxExporter& pExporter, int /*pSubID*/, int pPluginID)
 {
     // use FbxNew instead of new, since FBX will take charge its deletion
-    return FbxNew< AwdWriter >(pManager, pPluginID);
+    FbxWriter* lWriter = FbxNew< AwdWriter >(pManager, pPluginID);
+    lWriter->SetIOSettings(pExporter.GetIOSettings());
+    return lWriter;
 }
 
 // Get extension, description or version info about AwdWriter
@@ -24,7 +27,7 @@ void* GetAwdWriterInfo(FbxWriter::EInfoRequest pRequest, int /*pId*/)
 {
     static const char* sExt[] =
     {
-        "AWD",
+        PLUGIN_EXTENSION,
         0
     };
 
@@ -47,17 +50,20 @@ void* GetAwdWriterInfo(FbxWriter::EInfoRequest pRequest, int /*pId*/)
     }
 }
 
-void FillOwnWriterIOSettings(FbxIOSettings& /*pIOS*/)
+void FillAwdWriterIOSettings(FbxIOSettings& pIOS )
 {
-    // Here you can write your own FbxIOSettings and parse them.
+    AwdSettings::FillFbxIOSettings( pIOS );
 }
 
 
 // Creates a AwdReader in the Sdk Manager
-FbxReader* CreateAwdReader(FbxManager& pManager, FbxImporter& /*pImporter*/, int /*pSubID*/, int pPluginID)
+FbxReader* CreateAwdReader(FbxManager& pManager, FbxImporter& pImporter, int /*pSubID*/, int pPluginID)
 {
     // use FbxNew instead of new, since FBX will take charge its deletion
-    return FbxNew< AwdReader >(pManager, pPluginID);
+
+    FbxReader* lReader = FbxNew< AwdReader >(pManager, pPluginID);
+    lReader->SetIOSettings(pImporter.GetIOSettings());
+    return lReader;
 }
 
 // Get extension, description or version info about AwdReader
@@ -74,7 +80,7 @@ void *GetAwdReaderInfo(FbxReader::EInfoRequest pRequest, int pId)
     }
 }
 
-void FillOwnReaderIOSettings(FbxIOSettings& /*pIOS*/)
+void FillAwdReaderIOSettings(FbxIOSettings& /*pIOS*/)
 {
     // Here you can write your own FbxIOSettings and parse them.
 }

@@ -14,9 +14,12 @@ protected:
     // Implement Fbxmodules::FbxPlugin
     virtual bool SpecificInitialize()
     {
+        
+        FBXSDK_printf("AWD SpecificInitialize.\n");
+        
         int FirstPluginID, RegistredCount;
-        GetData().mSDKManager->GetIOPluginRegistry()->RegisterReader(CreateAwdReader, GetAwdReaderInfo, FirstPluginID, RegistredCount, FillOwnReaderIOSettings);
-        GetData().mSDKManager->GetIOPluginRegistry()->RegisterWriter(CreateAwdWriter, GetAwdWriterInfo, FirstPluginID, RegistredCount, FillOwnWriterIOSettings);
+        GetData().mSDKManager->GetIOPluginRegistry()->RegisterReader(CreateAwdReader, GetAwdReaderInfo, FirstPluginID, RegistredCount, FillAwdReaderIOSettings);
+        GetData().mSDKManager->GetIOPluginRegistry()->RegisterWriter(CreateAwdWriter, GetAwdWriterInfo, FirstPluginID, RegistredCount, FillAwdWriterIOSettings);
         return true;
     }
 
@@ -40,6 +43,7 @@ protected:
      void FBXPluginRegistration(FbxPluginContainer& pContainer, FbxModule pModuleHandle)
  #endif
      {
+         FBXSDK_printf("AWD FBXPluginRegistration.\n");
          if( sPluginInstance == NULL )
          {
              //Create the plug-in definition which contains the information about the plug-in

@@ -58,9 +58,9 @@ add_subdirectory (AwdWriterReader)
 
 add_executable(fbx2awd ${FBX2AWD_SOURCES})
 
-TARGET_LINK_LIBRARIES ( fbx2awd AwdWriterReader )
+TARGET_LINK_LIBRARIES ( fbx2awd AwdWriterReader_static )
+TARGET_LINK_LIBRARIES ( fbx2awd ${LINK_LIBRARIES} )
 
 #
 # Tests
 #
-TARGET_LINK_LIBRARIES ( fbx2awd ${LINK_LIBRARIES} )

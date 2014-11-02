@@ -9,8 +9,8 @@
 
 ****************************************************************************************/
 
-#ifndef MY_OWN_READER_H
-#define MY_OWN_READER_H
+#ifndef AWD_READER_H
+#define AWD_READER_H
 
 #include <fbxsdk.h>
 

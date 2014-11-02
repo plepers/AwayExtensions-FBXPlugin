@@ -15,19 +15,23 @@
 ////////////////////////////////////////////////////////////////////////////
 
 
-#ifndef MY_OWN_WRITER_PLUGIN_H
-#define MY_OWN_WRITER_PLUGIN_H
+#ifndef AWD_WRITER_PLUGIN_H
+#define AWD_WRITER_PLUGIN_H
 
 #include <fbxsdk.h>
 #include "AwdWriter.h"
 #include "AwdReader.h"
 
+#define PLUGIN_NAME         "Awd_Writer_Reader"
+#define PLUGIN_VERSION		"1.0"
+#define PLUGIN_EXTENSION	"AWD"
+
 FbxWriter* CreateAwdWriter(FbxManager& pManager, FbxExporter& pExporter, int pSubID, int pPluginID);
 void* GetAwdWriterInfo(FbxWriter::EInfoRequest pRequest, int pId);
-void FillOwnWriterIOSettings(FbxIOSettings& pIOS);
+void FillAwdWriterIOSettings(FbxIOSettings& pIOS);
 
 FbxReader* CreateAwdReader(FbxManager& pManager, FbxImporter& pImporter, int pSubID, int pPluginID);
 void *GetAwdReaderInfo(FbxReader::EInfoRequest pRequest, int pId);
-void FillOwnReaderIOSettings(FbxIOSettings& pIOS);
+void FillAwdReaderIOSettings(FbxIOSettings& pIOS);
 
 #endif

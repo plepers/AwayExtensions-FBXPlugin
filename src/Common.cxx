@@ -21,9 +21,16 @@
 
 bool AwdInitialize( FbxManager*& pManager )
 {
+    FBXSDK_printf("AwdInitialize!\n");
+
     int FirstPluginID, RegistredCount;
-    pManager->GetIOPluginRegistry()->RegisterReader(CreateAwdReader, GetAwdReaderInfo, FirstPluginID, RegistredCount, FillOwnReaderIOSettings);
-    pManager->GetIOPluginRegistry()->RegisterWriter(CreateAwdWriter, GetAwdWriterInfo, FirstPluginID, RegistredCount, FillOwnWriterIOSettings);
+    
+    pManager->GetIOPluginRegistry()->RegisterReader(CreateAwdReader, GetAwdReaderInfo, FirstPluginID, RegistredCount, FillAwdReaderIOSettings);
+    
+    pManager->GetIOPluginRegistry()->RegisterWriter(CreateAwdWriter, GetAwdWriterInfo, FirstPluginID, RegistredCount, FillAwdWriterIOSettings);
+    
+    FillAwdWriterIOSettings( *pManager->GetIOSettings() );
+    
     return true;
 }
 

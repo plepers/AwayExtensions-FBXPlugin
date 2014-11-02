@@ -10,6 +10,9 @@
 ****************************************************************************************/
 
 #include "AwdWriter.h"
+#include "AwdWriterReader.h"
+
+#include <awd/awd.h>
 
 AwdWriter::AwdWriter(FbxManager &pManager, int pID):
 FbxWriter(pManager, pID, FbxStatusGlobal::GetRef()),
@@ -114,6 +117,20 @@ void AwdWriter::PrintHierarchy(FbxNode* pStartNode)
 // Pre-process the scene before write it out
 bool AwdWriter::PreprocessScene(FbxScene& /*pScene*/)
 {
+    FbxIOSettings* s = GetIOSettings();
+    
+    FbxString dir( "/Users/plepers/work/workspaces/c/toto.xml" );
+    FbxString name( "name.xml" );
+    FbxString props( EXP_FBX_EXT_SDK_GRP "|" PLUGIN_NAME "|Test" );
+    
+    FBXSDK_printf("%s\n", props.Buffer() );
+    
+    s->WriteXMLFile( dir );
+    
+    BlockSettings * awdBlockSettings=new BlockSettings(false,false,false,false, 1.0);
+    
+    AWD *awd = new AWD( UNCOMPRESSED, 0, "", false, awdBlockSettings, true );
+    
     FBXSDK_printf("I'm in pre-process\n");
     return true;
 }

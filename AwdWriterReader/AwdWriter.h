@@ -9,8 +9,8 @@
 
 ****************************************************************************************/
 
-#ifndef MY_OWN_WRITER_H
-#define MY_OWN_WRITER_H
+#ifndef AWD_WRITER_H
+#define AWD_WRITER_H
 
 #include <fbxsdk.h>
 

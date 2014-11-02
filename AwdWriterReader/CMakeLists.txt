@@ -4,9 +4,14 @@ set( AwdWriterReader_SOURCES
   AwdWriter.cxx
   AwdWriterReader.cxx
   AwdPlugin.cxx
+  Settings.cxx
   AwdReader.h
   AwdWriter.h
   AwdWriterReader.h
+  Settings.h
 )
 
-add_library(AwdWriterReader ${AwdWriterReader_SOURCES})
+add_library( AwdWriterReader_static ${AwdWriterReader_SOURCES} )
+
+add_library( AwdWriterReader SHARED ${AwdWriterReader_SOURCES} )
+TARGET_LINK_LIBRARIES ( AwdWriterReader ${LINK_LIBRARIES} )
