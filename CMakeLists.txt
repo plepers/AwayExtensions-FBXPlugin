@@ -44,17 +44,23 @@ set( FBX2AWD_SOURCES
 )
 
 
-
-
 # add the binary tree to the search path for include files
 # so that we will find TutorialConfig.h
 include_directories("${PROJECT_BINARY_DIR}/include")
 include_directories("${PROJECT_SOURCE_DIR}/include")
 include_directories( SYSTEM ${FBX_INCLUDE_DIRS} )
 include_directories( SYSTEM ${AWD_INCLUDE_DIRS} )
-
+include_directories("${PROJECT_SOURCE_DIR}/AwdWriterReader")
 
 set( LINK_LIBRARIES ${FBX_LIBRARIES} ${AWD_LIBRARIES} )
 
+add_subdirectory (AwdWriterReader)
+
 add_executable(fbx2awd ${FBX2AWD_SOURCES})
+
+TARGET_LINK_LIBRARIES ( fbx2awd AwdWriterReader )
+
+#
+# Tests
+#
 TARGET_LINK_LIBRARIES ( fbx2awd ${LINK_LIBRARIES} )

@@ -13,6 +13,7 @@
 
 #include <fbxsdk.h>
 
+
 void InitializeSdkObjects(FbxManager*& pManager, FbxScene*& pScene);
 void DestroySdkObjects(FbxManager* pManager, bool pExitStatus);
 void CreateAndFillIOSettings(FbxManager* pManager);
