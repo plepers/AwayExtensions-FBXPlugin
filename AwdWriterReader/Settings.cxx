@@ -2,12 +2,29 @@
 #include "AwdWriterReader.h"
 #include "Settings.h"
 
-void AwdSettings::setupAwd( FbxIOSettings *pIOS, AWD *awd ){
-   
+AWD* AwdSettings::createAwd( FbxIOSettings *pIOS, char *outPathName ){
+
+    BlockSettings * bs = new BlockSettings(
+        AwdSettings::get_wide_matrix(pIOS),
+        AwdSettings::get_wide_props(pIOS),
+        AwdSettings::get_wide_attribs(pIOS),
+        AwdSettings::get_wide_geoms(pIOS),
+        AwdSettings::get_scale(pIOS)
+    );
+
+    AWD* awd = new AWD(
+        AwdSettings::get_compression(pIOS),     // AWD_compression compression,
+        0,                                      // awd_uint16 flags,
+        outPathName,                            // char *outPathName,
+        AwdSettings::get_split_by_root(pIOS),   // bool splitByRootObjs,
+        bs,                                     // BlockSettings * thisBlockSettings,
+        AwdSettings::get_export_empty(pIOS)     // bool exportEmtpyContainers
+    );
     
+    return awd;
 }
 
-void setupBlockSettings( FbxIOSettings *pIOS, BlockSettings * bs){
+void AwdSettings::setupBlockSettings( FbxIOSettings *pIOS, BlockSettings * bs){
     bs->set_wide_matrix(        AwdSettings::get_wide_matrix(pIOS) );
     bs->set_wide_props(         AwdSettings::get_wide_props(pIOS) );
     bs->set_wide_attributes(    AwdSettings::get_wide_attribs(pIOS) );
@@ -16,39 +33,45 @@ void setupBlockSettings( FbxIOSettings *pIOS, BlockSettings * bs){
 }
 
 void AwdSettings::FillFbxIOSettings(FbxIOSettings& pIOS ){
-    
-    
+
+
     // Here you can write your own FbxIOSettings and parse them.
     FbxProperty FBXExtentionsSDKGroup = pIOS.GetProperty(EXP_FBX_EXT_SDK_GRP);
     if( !FBXExtentionsSDKGroup.IsValid() ) return;
-    
+
     FbxProperty IOPluginGroup = pIOS.AddPropertyGroup(FBXExtentionsSDKGroup, PLUGIN_NAME, FbxStringDT, PLUGIN_NAME);
-    
+
     if( IOPluginGroup.IsValid() )
     {
-        
+
         bool precision_mtx      = false;
         bool precision_geo      = false;
         bool precision_props    = false;
         bool precision_attr     = false;
         float scale             = 1.0;
         AWD_compression comp    = UNCOMPRESSED;
-        
-        
+
+        bool export_empty       = true;
+        bool split_by_root      = false;
+
+
         pIOS.AddProperty(IOPluginGroup, WIDE_MATRIX ,       FbxBoolDT,  "Wide Matrix",  &precision_mtx );
         pIOS.AddProperty(IOPluginGroup, WIDE_GEOMS  ,       FbxBoolDT,  "Wide Geoms",   &precision_geo );
         pIOS.AddProperty(IOPluginGroup, WIDE_PROPS  ,       FbxBoolDT,  "Wide Props",   &precision_props );
         pIOS.AddProperty(IOPluginGroup, WIDE_ATTIBS ,       FbxBoolDT,  "Wide Attribs", &precision_attr );
         pIOS.AddProperty(IOPluginGroup, EXPORT_SCALE,       FbxFloatDT, "Scene Scale",  &scale );
-        
+
+        pIOS.AddProperty(IOPluginGroup, EXPORT_EMPTY ,      FbxBoolDT,  "export empty containers", &export_empty );
+        pIOS.AddProperty(IOPluginGroup, SPLIT_BY_ROOT ,     FbxBoolDT,  "split by root", &split_by_root );
+
         FbxProperty compression = pIOS.AddProperty(IOPluginGroup, AWD_COMPRESSION,    FbxEnumDT, "Compression",  AWD_COMPRESSION );
-        
+
         compression.AddEnumValue( "uncompressed" );
         compression.AddEnumValue( "deflate" );
         compression.AddEnumValue( "lzma" );
 
     }
-    
+
 }
 
 
@@ -73,6 +96,14 @@ bool AwdSettings::get_wide_attribs(FbxIOSettings* pIOS){
     return pIOS->GetBoolProp( EXP_FBX_EXT_SDK_GRP "|" PLUGIN_NAME "|" WIDE_ATTIBS, false );
 }
 
+bool AwdSettings::get_export_empty(FbxIOSettings* pIOS){
+    return pIOS->GetBoolProp( EXP_FBX_EXT_SDK_GRP "|" PLUGIN_NAME "|" EXPORT_EMPTY, false );
+}
+
+bool AwdSettings::get_split_by_root(FbxIOSettings* pIOS){
+    return pIOS->GetBoolProp( EXP_FBX_EXT_SDK_GRP "|" PLUGIN_NAME "|" SPLIT_BY_ROOT, false );
+}
+
 double AwdSettings::get_scale(FbxIOSettings* pIOS){
     return pIOS->GetDoubleProp( EXP_FBX_EXT_SDK_GRP "|" PLUGIN_NAME "|" EXPORT_SCALE, 1.0 );
 }
@@ -92,6 +123,14 @@ void AwdSettings::set_wide_props(FbxIOSettings* pIOS, bool value){
 
 void AwdSettings::set_wide_attribs(FbxIOSettings* pIOS, bool value){
     pIOS->SetBoolProp( EXP_FBX_EXT_SDK_GRP "|" PLUGIN_NAME "|" WIDE_ATTIBS, value );
+}
+
+void AwdSettings::set_export_empty(FbxIOSettings* pIOS, bool value){
+    pIOS->SetBoolProp( EXP_FBX_EXT_SDK_GRP "|" PLUGIN_NAME "|" EXPORT_EMPTY, value );
+}
+
+void AwdSettings::set_split_by_root(FbxIOSettings* pIOS, bool value){
+    pIOS->SetBoolProp( EXP_FBX_EXT_SDK_GRP "|" PLUGIN_NAME "|" SPLIT_BY_ROOT, value );
 }
 
 void AwdSettings::set_scale(FbxIOSettings* pIOS, double value){
@@ -117,7 +156,7 @@ void AwdSettings::set_compression        (FbxIOSettings* pIOS, AWD_compression v
         str = "deflate";
     if( value == LZMA )
         str = "lzma";
-    
+
     pIOS->SetEnumProp( EXP_FBX_EXT_SDK_GRP "|" PLUGIN_NAME "|" AWD_COMPRESSION, str );
 }
 

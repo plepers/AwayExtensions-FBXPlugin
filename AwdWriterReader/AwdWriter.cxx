@@ -11,6 +11,7 @@
 
 #include "AwdWriter.h"
 #include "AwdWriterReader.h"
+#include "Settings.h"
 
 #include <awd/awd.h>
 
@@ -102,7 +103,7 @@ void AwdWriter::PrintHierarchy(FbxNode* pStartNode)
     {
         lChildNode = pStartNode->GetChild(i);
         const char* lChildName = lChildNode->GetName();
-        FBXSDK_fprintf(mFilePointer,"%s%s%s%s%s%s%s","\"",lChildName,"\"",", parent is ","\"",lParentName,"\"\n");
+        //FBXSDK_fprintf(mFilePointer,"%s%s%s%s%s%s%s","\"",lChildName,"\"",", parent is ","\"",lParentName,"\"\n");
     }
 
     int lNodeChildCount = pStartNode->GetChildCount ();
@@ -119,7 +120,7 @@ bool AwdWriter::PreprocessScene(FbxScene& /*pScene*/)
 {
     FbxIOSettings* s = GetIOSettings();
     
-    FbxString dir( "/Users/plepers/work/workspaces/c/toto.xml" );
+    FbxString dir( "/Users/plepers/work/workspaces/c/totos.xml" );
     FbxString name( "name.xml" );
     FbxString props( EXP_FBX_EXT_SDK_GRP "|" PLUGIN_NAME "|Test" );
     
@@ -127,9 +128,7 @@ bool AwdWriter::PreprocessScene(FbxScene& /*pScene*/)
     
     s->WriteXMLFile( dir );
     
-    BlockSettings * awdBlockSettings=new BlockSettings(false,false,false,false, 1.0);
-    
-    AWD *awd = new AWD( UNCOMPRESSED, 0, "", false, awdBlockSettings, true );
+    mAwd = AwdSettings::createAwd( s, NULL );
     
     FBXSDK_printf("I'm in pre-process\n");
     return true;
@@ -138,6 +137,8 @@ bool AwdWriter::PreprocessScene(FbxScene& /*pScene*/)
 // Post-process the scene after write it out
 bool AwdWriter::PostprocessScene(FbxScene& /*pScene*/)
 {
+    int fd = fileno( mFilePointer );
+    mAwd->flush( fd );
     FBXSDK_printf("I'm in post process\n");
     return true;
 }

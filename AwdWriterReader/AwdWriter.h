@@ -13,6 +13,7 @@
 #define AWD_WRITER_H
 
 #include <fbxsdk.h>
+#include <awd/awd.h>
 
 //This class is a custom writer.
 //The writer provide you the ability to write out node hierarchy to a custom file format.
@@ -37,6 +38,7 @@ public:
 private:
     FILE*		mFilePointer;
     FbxManager*	mManager;
+    AWD*        mAwd;
 };
 
 #endif
