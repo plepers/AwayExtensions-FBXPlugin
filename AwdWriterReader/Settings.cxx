@@ -2,7 +2,7 @@
 #include "AwdWriterReader.h"
 #include "Settings.h"
 
-AWD* AwdSettings::createAwd( FbxIOSettings *pIOS, char *outPathName ){
+AWD* AwdSettings::createAwd( FbxIOSettings *pIOS ){
 
     BlockSettings * bs = new BlockSettings(
         AwdSettings::get_wide_matrix(pIOS),
@@ -15,7 +15,7 @@ AWD* AwdSettings::createAwd( FbxIOSettings *pIOS, char *outPathName ){
     AWD* awd = new AWD(
         AwdSettings::get_compression(pIOS),     // AWD_compression compression,
         0,                                      // awd_uint16 flags,
-        outPathName,                            // char *outPathName,
+        NULL,                            		// char *outPathName,
         AwdSettings::get_split_by_root(pIOS),   // bool splitByRootObjs,
         bs,                                     // BlockSettings * thisBlockSettings,
         AwdSettings::get_export_empty(pIOS)     // bool exportEmtpyContainers
@@ -49,7 +49,7 @@ void AwdSettings::FillFbxIOSettings(FbxIOSettings& pIOS ){
         bool precision_props    = false;
         bool precision_attr     = false;
         float scale             = 1.0;
-        AWD_compression comp    = UNCOMPRESSED;
+//        AWD_compression comp    = UNCOMPRESSED;
 
         bool export_empty       = true;
         bool split_by_root      = false;
@@ -146,6 +146,8 @@ AWD_compression AwdSettings::get_compression        (FbxIOSettings* pIOS){
         return DEFLATE;
     if( str == "lzma" )
         return LZMA;
+    
+    return UNCOMPRESSED;
 }
 
 void AwdSettings::set_compression        (FbxIOSettings* pIOS, AWD_compression value){

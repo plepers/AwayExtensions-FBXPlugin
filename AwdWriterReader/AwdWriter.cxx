@@ -15,12 +15,40 @@
 
 #include <awd/awd.h>
 
+
+
+
+/*
+ * The default ExportProvider factory
+ *
+ */
+ExporterProvider* CreateExporterProvider(){
+    
+    ContainerExporter* pDefault = new ContainerExporter();
+    
+    ExporterProvider* provider = new ExporterProvider( pDefault );
+    
+    // add exporter for each fbx nodes types here
+    provider->addExporter( pDefault ); // for meshes (test)
+    
+    return provider;
+}
+
+
+
+
+/*
+ * AwdWriter
+ * ------
+ * implement FbxWriter, entry point for export
+ */
+
 AwdWriter::AwdWriter(FbxManager &pManager, int pID):
 FbxWriter(pManager, pID, FbxStatusGlobal::GetRef()),
 mFilePointer(NULL),
 mManager(&pManager)
 {
-
+	
 }
 
 AwdWriter::~AwdWriter()
@@ -85,8 +113,7 @@ bool AwdWriter::Write(FbxDocument* pDocument)
         PreprocessScene(*lScene);
         FBXSDK_printf("I'm in my own writer\n");
 
-        FbxNode* lRootNode = lScene->GetRootNode();
-        PrintHierarchy(lRootNode);
+        ExportScene(lScene);
 
         PostprocessScene(*lScene);
         lResult = true;
@@ -94,51 +121,195 @@ bool AwdWriter::Write(FbxDocument* pDocument)
     return lResult;
 }
 
-// Write out Node Hierarchy recursively
-void AwdWriter::PrintHierarchy(FbxNode* pStartNode)
-{
-    FbxNode* lChildNode;
-    const char* lParentName = pStartNode->GetName();
-    for(int i = 0; i<pStartNode->GetChildCount(); i++)
-    {
-        lChildNode = pStartNode->GetChild(i);
-        const char* lChildName = lChildNode->GetName();
-        //FBXSDK_fprintf(mFilePointer,"%s%s%s%s%s%s%s","\"",lChildName,"\"",", parent is ","\"",lParentName,"\"\n");
-    }
 
-    int lNodeChildCount = pStartNode->GetChildCount ();
-    while (lNodeChildCount > 0)
-    {
-        lNodeChildCount--;
-        lChildNode = pStartNode->GetChild (lNodeChildCount);
-        PrintHierarchy(lChildNode);
-    }
-}
 
 // Pre-process the scene before write it out
 bool AwdWriter::PreprocessScene(FbxScene& /*pScene*/)
 {
     FbxIOSettings* s = GetIOSettings();
     
-    FbxString dir( "/Users/plepers/work/workspaces/c/totos.xml" );
-    FbxString name( "name.xml" );
-    FbxString props( EXP_FBX_EXT_SDK_GRP "|" PLUGIN_NAME "|Test" );
+//    FbxString dir( "/Users/plepers/work/workspaces/c/totos.xml" );
+//    FbxString name( "name.xml" );
+//    FbxString props( EXP_FBX_EXT_SDK_GRP "|" PLUGIN_NAME "|Test" );
+//    FBXSDK_printf("%s\n", props.Buffer() );
+//    s->WriteXMLFile( dir );
     
-    FBXSDK_printf("%s\n", props.Buffer() );
-    
-    s->WriteXMLFile( dir );
-    
-    mAwd = AwdSettings::createAwd( s, NULL );
+    mAwd = AwdSettings::createAwd( s );
+    mExporters = CreateExporterProvider();
     
     FBXSDK_printf("I'm in pre-process\n");
     return true;
 }
+
+
 
 // Post-process the scene after write it out
 bool AwdWriter::PostprocessScene(FbxScene& /*pScene*/)
 {
     int fd = fileno( mFilePointer );
     mAwd->flush( fd );
+    mExporters = NULL;
+    
     FBXSDK_printf("I'm in post process\n");
     return true;
 }
+
+
+
+// Write out Node Hierarchy recursively
+void AwdWriter::ExportScene(FbxScene* pScene )
+{
+    
+    // export global scene settings here
+    
+    ExportNodeAndChildren( pScene->GetRootNode() );
+    
+}
+
+
+// export node descendants then node
+// return true if one or more node has been exported
+//
+bool AwdWriter::ExportNodeAndChildren(FbxNode* pNode)
+{
+    bool exported = FALSE;
+    
+    FbxNode* lChildNode;
+    
+    int lNodeChildCount = pNode->GetChildCount ();
+    while (lNodeChildCount > 0)
+    {
+        lNodeChildCount--;
+        lChildNode = pNode->GetChild (lNodeChildCount);
+        
+        if( ExportNodeAndChildren(lChildNode) ) {
+            exported = TRUE;
+        }
+    }
+    
+    // force export of this node if exported is true
+    // since it must be parent of exported children
+    ExportNode( pNode, exported );
+    
+    return exported;
+
+}
+
+
+/*
+ * Retreive an exporter matching node type
+ * and execute it
+ * if `force` is false and no exporter is found
+ * skip the node
+ */
+bool AwdWriter::ExportNode(FbxNode* pNode, bool force )
+{
+    bool exported = force;
+    
+    NodeExporter* exporter = NULL;
+    
+    if(pNode->GetNodeAttribute() != NULL)
+    {
+        FbxNodeAttribute::EType nType = (pNode->GetNodeAttribute()->GetAttributeType());
+        exporter = mExporters->getExporterByType( nType );
+    }
+    
+    if( exporter == NULL && force ){
+        exporter = mExporters->getDefaultExporter();
+    }
+    
+    if( exporter ){
+        exporter->setup(mAwd);
+        exporter->doExport( pNode );
+        exporter->release();
+        exported = TRUE;
+    }
+    
+    
+    return exported;
+    
+}
+
+
+
+
+// ================
+// ExporterProvider
+
+
+ExporterLinkedItem::ExporterLinkedItem(NodeExporter *exporter )
+{
+    mExporter = exporter;
+}
+
+ExporterLinkedItem::~ExporterLinkedItem()
+{
+    mExporter = NULL;
+}
+
+
+ExporterLinkedItem* ExporterLinkedItem::next()
+{
+    return mNext;
+}
+
+void ExporterLinkedItem::setNext( ExporterLinkedItem* item )
+{
+    if( mNext ) {
+        item->setNext( mNext );
+    }
+    mNext = item;
+}
+
+NodeExporter* ExporterLinkedItem::getExporter()
+{
+    return mExporter;
+}
+
+
+
+
+
+
+ExporterProvider::ExporterProvider( NodeExporter* pDefault )
+{
+    mDefault = pDefault;
+    mHead = NULL;
+    mTail = NULL;
+}
+
+void ExporterProvider::addExporter(NodeExporter *exporter)
+{
+    ExporterLinkedItem *item = new ExporterLinkedItem( exporter );
+    if( mTail ) {
+        mTail->setNext(item);
+    } else {
+        mHead = mTail = item;
+    }
+}
+
+NodeExporter* ExporterProvider::getExporterByType( FbxNodeAttribute::EType nType )
+{
+    ExporterLinkedItem *item = mHead;
+    
+    while( item ) {
+        
+        if( item->getExporter()->handleNodeType( nType ) ){
+            return item->getExporter();
+        }
+        
+        item = item->next();
+    }
+    
+    // no suitable exporter found
+    return NULL;
+}
+
+
+
+NodeExporter* ExporterProvider::getDefaultExporter()
+{
+    return mDefault;
+}
+
+

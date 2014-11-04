@@ -5,10 +5,15 @@ set( AwdWriterReader_SOURCES
   AwdWriterReader.cxx
   AwdPlugin.cxx
   Settings.cxx
+  ContainerExporter.cxx
+  NodeExporter.cxx
+  
   AwdReader.h
   AwdWriter.h
   AwdWriterReader.h
   Settings.h
+  ContainerExporter.h
+  NodeExporter.h
 )
 
 add_library( AwdWriterReader_static ${AwdWriterReader_SOURCES} )

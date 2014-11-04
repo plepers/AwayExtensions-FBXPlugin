@@ -20,7 +20,7 @@ ADD_DEFINITIONS(-DFBX_VERSION_MAJOR=${FBX_VERSION_MAJOR})
 
 # find AWD cpp library
 find_path( AWD_INCLUDE_DIRS awd )
-find_library( AWD_LIBRARIES awd_static )
+find_library( AWD_LIBRARIES libawd.a awd )
 
 
 
