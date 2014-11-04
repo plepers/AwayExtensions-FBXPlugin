@@ -30,17 +30,17 @@
 
 #include "Common.h"
 
-#define SAMPLE_FILENAME "/Users/plepers/work/workspaces/c/fbx_awd_converter/sample/box.fbx"
+#define SAMPLE_FILENAME "/Users/plepers/work/workspaces/c/awd_tools/AwayExtensions-FBXPlugin/samples/box_zup.fbx"
 
 const char* lFileTypes[] =
 {
-    "_dae.dae",             "Collada DAE (*.dae)",
-    "_fbx7binary.fbx",      "FBX binary (*.fbx)",
-    "_fbx7ascii.fbx",       "FBX ascii (*.fbx)",
-    "_fbx6binary.fbx",      "FBX 6.0 binary (*.fbx)",
-    "_fbx6ascii.fbx",       "FBX 6.0 ascii (*.fbx)",
-    "_obj.obj",             "Alias OBJ (*.obj)",
-    "_dxf.dxf",             "AutoCAD DXF (*.dxf)",
+//    "_dae.dae",             "Collada DAE (*.dae)",
+//    "_fbx7binary.fbx",      "FBX binary (*.fbx)",
+//    "_fbx7ascii.fbx",       "FBX ascii (*.fbx)",
+//    "_fbx6binary.fbx",      "FBX 6.0 binary (*.fbx)",
+//    "_fbx6ascii.fbx",       "FBX 6.0 ascii (*.fbx)",
+//    "_obj.obj",             "Alias OBJ (*.obj)",
+//    "_dxf.dxf",             "AutoCAD DXF (*.dxf)",
     "_awd.awd",             "Away3D AWD (*.AWD)"
 };
 

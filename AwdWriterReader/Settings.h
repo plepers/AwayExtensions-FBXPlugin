@@ -24,7 +24,7 @@
 
 namespace AwdSettings {
 
-    AWD* createAwd( FbxIOSettings *pIOS, char *outPathName );
+    AWD* createAwd( FbxIOSettings *pIOS );
 
     void setupBlockSettings( FbxIOSettings *, BlockSettings * );
 
