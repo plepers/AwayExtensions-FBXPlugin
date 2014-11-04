@@ -2,6 +2,8 @@
 #include "AwdWriterReader.h"
 #include "Settings.h"
 
+#define AWD_OPTION_GROUP EXP_ADV_OPT_GRP
+
 AWD* AwdSettings::createAwd( FbxIOSettings *pIOS, char *outPathName ){
 
     BlockSettings * bs = new BlockSettings(
@@ -36,7 +38,7 @@ void AwdSettings::FillFbxIOSettings(FbxIOSettings& pIOS ){
 
 
     // Here you can write your own FbxIOSettings and parse them.
-    FbxProperty FBXExtentionsSDKGroup = pIOS.GetProperty(EXP_FBX_EXT_SDK_GRP);
+    FbxProperty FBXExtentionsSDKGroup = pIOS.GetProperty(AWD_OPTION_GROUP);
     if( !FBXExtentionsSDKGroup.IsValid() ) return;
 
     FbxProperty IOPluginGroup = pIOS.AddPropertyGroup(FBXExtentionsSDKGroup, PLUGIN_NAME, FbxStringDT, PLUGIN_NAME);
@@ -76,70 +78,70 @@ void AwdSettings::FillFbxIOSettings(FbxIOSettings& pIOS ){
 
 
 FbxProperty AwdSettings::getSettingsGroup(FbxIOSettings* pIOS){
-    FbxProperty group = pIOS->GetProperty( EXP_FBX_EXT_SDK_GRP "|" PLUGIN_NAME );
+    FbxProperty group = pIOS->GetProperty( AWD_OPTION_GROUP "|" PLUGIN_NAME );
     return group;
 }
 
 bool AwdSettings::get_wide_matrix(FbxIOSettings* pIOS){
-    return pIOS->GetBoolProp( EXP_FBX_EXT_SDK_GRP "|" PLUGIN_NAME "|" WIDE_MATRIX, false );
+    return pIOS->GetBoolProp( AWD_OPTION_GROUP "|" PLUGIN_NAME "|" WIDE_MATRIX, false );
 }
 
 bool AwdSettings::get_wide_geoms(FbxIOSettings* pIOS){
-    return pIOS->GetBoolProp( EXP_FBX_EXT_SDK_GRP "|" PLUGIN_NAME "|" WIDE_GEOMS, false );
+    return pIOS->GetBoolProp( AWD_OPTION_GROUP "|" PLUGIN_NAME "|" WIDE_GEOMS, false );
 }
 
 bool AwdSettings::get_wide_props(FbxIOSettings* pIOS){
-    return pIOS->GetBoolProp( EXP_FBX_EXT_SDK_GRP "|" PLUGIN_NAME "|" WIDE_PROPS, false );
+    return pIOS->GetBoolProp( AWD_OPTION_GROUP "|" PLUGIN_NAME "|" WIDE_PROPS, false );
 }
 
 bool AwdSettings::get_wide_attribs(FbxIOSettings* pIOS){
-    return pIOS->GetBoolProp( EXP_FBX_EXT_SDK_GRP "|" PLUGIN_NAME "|" WIDE_ATTIBS, false );
+    return pIOS->GetBoolProp( AWD_OPTION_GROUP "|" PLUGIN_NAME "|" WIDE_ATTIBS, false );
 }
 
 bool AwdSettings::get_export_empty(FbxIOSettings* pIOS){
-    return pIOS->GetBoolProp( EXP_FBX_EXT_SDK_GRP "|" PLUGIN_NAME "|" EXPORT_EMPTY, false );
+    return pIOS->GetBoolProp( AWD_OPTION_GROUP "|" PLUGIN_NAME "|" EXPORT_EMPTY, false );
 }
 
 bool AwdSettings::get_split_by_root(FbxIOSettings* pIOS){
-    return pIOS->GetBoolProp( EXP_FBX_EXT_SDK_GRP "|" PLUGIN_NAME "|" SPLIT_BY_ROOT, false );
+    return pIOS->GetBoolProp( AWD_OPTION_GROUP "|" PLUGIN_NAME "|" SPLIT_BY_ROOT, false );
 }
 
 double AwdSettings::get_scale(FbxIOSettings* pIOS){
-    return pIOS->GetDoubleProp( EXP_FBX_EXT_SDK_GRP "|" PLUGIN_NAME "|" EXPORT_SCALE, 1.0 );
+    return pIOS->GetDoubleProp( AWD_OPTION_GROUP "|" PLUGIN_NAME "|" EXPORT_SCALE, 1.0 );
 }
 
 
 void AwdSettings::set_wide_matrix(FbxIOSettings* pIOS, bool value){
-    pIOS->SetBoolProp( EXP_FBX_EXT_SDK_GRP "|" PLUGIN_NAME "|" WIDE_MATRIX, value );
+    pIOS->SetBoolProp( AWD_OPTION_GROUP "|" PLUGIN_NAME "|" WIDE_MATRIX, value );
 }
 
 void AwdSettings::set_wide_geoms(FbxIOSettings* pIOS, bool value){
-    pIOS->SetBoolProp( EXP_FBX_EXT_SDK_GRP "|" PLUGIN_NAME "|" WIDE_GEOMS, value );
+    pIOS->SetBoolProp( AWD_OPTION_GROUP "|" PLUGIN_NAME "|" WIDE_GEOMS, value );
 }
 
 void AwdSettings::set_wide_props(FbxIOSettings* pIOS, bool value){
-    pIOS->SetBoolProp( EXP_FBX_EXT_SDK_GRP "|" PLUGIN_NAME "|" WIDE_PROPS, value );
+    pIOS->SetBoolProp( AWD_OPTION_GROUP "|" PLUGIN_NAME "|" WIDE_PROPS, value );
 }
 
 void AwdSettings::set_wide_attribs(FbxIOSettings* pIOS, bool value){
-    pIOS->SetBoolProp( EXP_FBX_EXT_SDK_GRP "|" PLUGIN_NAME "|" WIDE_ATTIBS, value );
+    pIOS->SetBoolProp( AWD_OPTION_GROUP "|" PLUGIN_NAME "|" WIDE_ATTIBS, value );
 }
 
 void AwdSettings::set_export_empty(FbxIOSettings* pIOS, bool value){
-    pIOS->SetBoolProp( EXP_FBX_EXT_SDK_GRP "|" PLUGIN_NAME "|" EXPORT_EMPTY, value );
+    pIOS->SetBoolProp( AWD_OPTION_GROUP "|" PLUGIN_NAME "|" EXPORT_EMPTY, value );
 }
 
 void AwdSettings::set_split_by_root(FbxIOSettings* pIOS, bool value){
-    pIOS->SetBoolProp( EXP_FBX_EXT_SDK_GRP "|" PLUGIN_NAME "|" SPLIT_BY_ROOT, value );
+    pIOS->SetBoolProp( AWD_OPTION_GROUP "|" PLUGIN_NAME "|" SPLIT_BY_ROOT, value );
 }
 
 void AwdSettings::set_scale(FbxIOSettings* pIOS, double value){
-    pIOS->SetDoubleProp( EXP_FBX_EXT_SDK_GRP "|" PLUGIN_NAME "|" EXPORT_SCALE, value );
+    pIOS->SetDoubleProp( AWD_OPTION_GROUP "|" PLUGIN_NAME "|" EXPORT_SCALE, value );
 }
 
 
 AWD_compression AwdSettings::get_compression        (FbxIOSettings* pIOS){
-    FbxString str = pIOS->GetEnumProp( EXP_FBX_EXT_SDK_GRP "|" PLUGIN_NAME "|" AWD_COMPRESSION, "uncompressed");
+    FbxString str = pIOS->GetEnumProp( AWD_OPTION_GROUP "|" PLUGIN_NAME "|" AWD_COMPRESSION, "uncompressed");
     if( str == "uncompressed" )
         return UNCOMPRESSED;
     if( str == "deflate" )
@@ -157,6 +159,6 @@ void AwdSettings::set_compression        (FbxIOSettings* pIOS, AWD_compression v
     if( value == LZMA )
         str = "lzma";
 
-    pIOS->SetEnumProp( EXP_FBX_EXT_SDK_GRP "|" PLUGIN_NAME "|" AWD_COMPRESSION, str );
+    pIOS->SetEnumProp( AWD_OPTION_GROUP "|" PLUGIN_NAME "|" AWD_COMPRESSION, str );
 }
 
