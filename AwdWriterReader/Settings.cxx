@@ -2,6 +2,7 @@
 #include "AwdWriterReader.h"
 #include "Settings.h"
 
+#define AWD_OPTION_GROUP EXP_ADV_OPT_GRP
 
 AWD* AwdSettings::createAwd( FbxIOSettings *pIOS ){
 
@@ -21,7 +22,7 @@ AWD* AwdSettings::createAwd( FbxIOSettings *pIOS ){
         bs,                                     // BlockSettings * thisBlockSettings,
         AwdSettings::get_export_empty(pIOS)     // bool exportEmtpyContainers
     );
-    
+
     return awd;
 }
 
@@ -147,7 +148,7 @@ AWD_compression AwdSettings::get_compression        (FbxIOSettings* pIOS){
         return DEFLATE;
     if( str == "lzma" )
         return LZMA;
-    
+
     return UNCOMPRESSED;
 }
 

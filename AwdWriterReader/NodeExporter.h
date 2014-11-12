@@ -11,6 +11,7 @@
 
 #include <awd/awd.h>
 #include <fbxsdk.h>
+#include "BlocksMap.h"
 
 //This class is a custom writer.
 //The writer provide you the ability to write out node hierarchy to a custom file format.
@@ -21,16 +22,19 @@ class NodeExporter
 {
 public:
     
-    void setup( AWD* awd );
+    void setup( AWD* awd, FbxManager* fbxManager, BlocksMap *blocksMap );
     void release();
     
     
-    virtual bool handleNodeType( FbxNodeAttribute::EType type ) = 0;
+    virtual bool isHandleObject( FbxObject* ) = 0;
    
-    virtual void doExport(FbxNode* pNode) = 0;
+    virtual void doExport( FbxObject* ) = 0;
     
 protected:
-    AWD*        mAwd;
+    
+    AWD         *mAwd;
+    FbxManager  *mFbxManager;
+    BlocksMap   *mBlocksMap;
 };
 
 //

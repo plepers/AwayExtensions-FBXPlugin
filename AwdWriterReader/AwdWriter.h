@@ -15,7 +15,7 @@
 #include <fbxsdk.h>
 #include <awd/awd.h>
 #include <NodeExporter.h>
-#include <ContainerExporter.h>
+#include <BlocksMap.h>
 
 
 
@@ -58,7 +58,7 @@ public:
     
     void addExporter( NodeExporter* );
     
-    NodeExporter* getExporterByType( FbxNodeAttribute::EType );
+    NodeExporter* findExporter( FbxObject* pObj );
     NodeExporter* getDefaultExporter();
     
 private:
@@ -101,6 +101,7 @@ private:
     FbxManager			*mManager;
     AWD					*mAwd;
     ExporterProvider	*mExporters;
+    BlocksMap           *mBlocksMap;
 };
 
 

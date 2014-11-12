@@ -14,9 +14,9 @@
 
 class ContainerExporter : public NodeExporter
 {
-    virtual bool handleNodeType( FbxNodeAttribute::EType type );
+    virtual bool isHandleObject( FbxObject* );
     
-    virtual void doExport(FbxNode* pNode);
+    virtual void doExport( FbxObject* );
 };
 
 

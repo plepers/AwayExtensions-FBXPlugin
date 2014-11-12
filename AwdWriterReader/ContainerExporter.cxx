@@ -8,18 +8,21 @@
 
 #include "ContainerExporter.h"
 
-bool ContainerExporter::handleNodeType( FbxNodeAttribute::EType type ){
-    return type == FbxNodeAttribute::eMesh;
+bool ContainerExporter::isHandleObject( FbxObject *pObj ){
+    return pObj->Is<FbxNode>();
 }
 
-void ContainerExporter::doExport(FbxNode* pNode){
+void ContainerExporter::doExport(FbxObject* pObj){
     
-    const char *name = pNode->GetName();
+    FbxNode *lNode = (FbxNode*) pObj;
+    
+    const char *name = lNode->GetName();
     AWDContainer* awdContainer = new AWDContainer( name, strlen(name) );
     
-    CopyNodeTransform( pNode, awdContainer );
+    CopyNodeTransform( lNode, awdContainer );
     
     
+    mBlocksMap->Set( lNode, awdContainer );
     mAwd->add_scene_block( awdContainer );
     
 }

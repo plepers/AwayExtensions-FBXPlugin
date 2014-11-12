@@ -13,6 +13,9 @@
 #include "AwdWriterReader.h"
 #include "Settings.h"
 
+#include <ContainerExporter.h>
+#include <MeshExporter.h>
+
 #include <awd/awd.h>
 
 
@@ -29,7 +32,7 @@ ExporterProvider* CreateExporterProvider(){
     ExporterProvider* provider = new ExporterProvider( pDefault );
     
     // add exporter for each fbx nodes types here
-    provider->addExporter( pDefault ); // for meshes (test)
+    provider->addExporter( new MeshExporter() );
     
     return provider;
 }
@@ -136,6 +139,7 @@ bool AwdWriter::PreprocessScene(FbxScene& /*pScene*/)
     
     mAwd = AwdSettings::createAwd( s );
     mExporters = CreateExporterProvider();
+    mBlocksMap = new BlocksMap();
     
     FBXSDK_printf("I'm in pre-process\n");
     return true;
@@ -204,14 +208,27 @@ bool AwdWriter::ExportNodeAndChildren(FbxNode* pNode)
  */
 bool AwdWriter::ExportNode(FbxNode* pNode, bool force )
 {
+    
+    FBXSDK_printf("ExportNode %s\n", pNode->GetName() );
+    
+//    FbxNodeAttribute* attr = pNode->GetNodeAttribute();
+//    if( attr ){
+//        FBXSDK_printf("  attr %s\n", attr->GetName() );
+//        
+//        attr = attr->GetNodeAttribute();
+//        if( attr )
+//            FBXSDK_printf("      attr %s\n", attr->GetName() );
+//
+//    }
+    
+    
     bool exported = force;
     
     NodeExporter* exporter = NULL;
     
     if(pNode->GetNodeAttribute() != NULL)
     {
-        FbxNodeAttribute::EType nType = (pNode->GetNodeAttribute()->GetAttributeType());
-        exporter = mExporters->getExporterByType( nType );
+        exporter = mExporters->findExporter( pNode );
     }
     
     if( exporter == NULL && force ){
@@ -219,7 +236,7 @@ bool AwdWriter::ExportNode(FbxNode* pNode, bool force )
     }
     
     if( exporter ){
-        exporter->setup(mAwd);
+        exporter->setup(mAwd, mManager, mBlocksMap);
         exporter->doExport( pNode );
         exporter->release();
         exported = TRUE;
@@ -240,6 +257,7 @@ bool AwdWriter::ExportNode(FbxNode* pNode, bool force )
 ExporterLinkedItem::ExporterLinkedItem(NodeExporter *exporter )
 {
     mExporter = exporter;
+    mNext = NULL;
 }
 
 ExporterLinkedItem::~ExporterLinkedItem()
@@ -288,13 +306,13 @@ void ExporterProvider::addExporter(NodeExporter *exporter)
     }
 }
 
-NodeExporter* ExporterProvider::getExporterByType( FbxNodeAttribute::EType nType )
+NodeExporter* ExporterProvider::findExporter( FbxObject* pObj )
 {
     ExporterLinkedItem *item = mHead;
     
     while( item ) {
         
-        if( item->getExporter()->handleNodeType( nType ) ){
+        if( item->getExporter()->isHandleObject( pObj ) ){
             return item->getExporter();
         }
         
