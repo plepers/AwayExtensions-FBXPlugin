@@ -58,4 +58,39 @@ private:
 };
 
 
+class Collapser
+{
+public:
+    Collapser( unsigned int *pIndices, unsigned int pNumIndices, unsigned int pNumVertices );
+    ~Collapser();
+    
+    void addStream( awd_float64 *data, unsigned int csize );
+    void collapse();
+    
+private:
+    
+    struct Stream{
+        Stream() :
+        	data(NULL),
+	        csize(0)
+        {}
+        
+        awd_float64 	*data;
+        unsigned int 	csize;
+    };
+    
+    unsigned int 		mNumVertices;
+    unsigned int 		mNumIndices;
+    
+    
+    FbxArray<Stream*>	mStreams;
+    unsigned int 		*mIndices;
+    unsigned int 		*mRemapTable;
+    
+    
+    
+    void scanStream( unsigned int index, unsigned int comp );
+};
+
+
 #endif /* defined(__FbxAwdExporter__GeomExporter__) */

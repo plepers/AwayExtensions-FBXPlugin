@@ -296,12 +296,33 @@ void GeomExporter::doExport(FbxObject* pObject){
         mSubMeshes[lMaterialIndex]->TriangleCount += 1;
     }
 
-    // todo , here we should collapse duplicated vertices
-    // before generate finals submeshes
     
+    
+    
+    
+    // collapse duplicated vertices
+    // before generate finals submeshes
     //
-    //
-    //
+    
+    Collapser *collapser = new Collapser( lIndices, lPolygonCount * TRIANGLE_VERTEX_COUNT, lPolygonVertexCount );
+    
+    collapser->addStream( lVertices, 3 );
+    
+    if( mHasNormal )
+        collapser->addStream( lNormals, 3 );
+    
+    if( mHasUV )
+        collapser->addStream( lUVs, 2 );
+    
+    
+    collapser->collapse();
+    
+    delete collapser;
+    collapser = NULL;
+    
+    
+    
+    
     
     
     
@@ -332,7 +353,6 @@ void GeomExporter::doExport(FbxObject* pObject){
     
     int lsubIndex = 0;
     int idxPtr;
-    int newIdxPtr;
     int lRemappedIndex = 0;
     unsigned int lCurrentIndex = 0;
     unsigned int lsgNumVertices = 0;
@@ -409,6 +429,8 @@ void GeomExporter::doExport(FbxObject* pObject){
             // allocate SubMesh data, since we know exact number
             // of vertices needed per sub geoms
             //
+            FBXSDK_printf("Geometry - create submesh (%i), num verts : %i \n", lsubIndex, lsgNumVertices );
+            
             SubMeshData *data = new SubMeshData();
             mSubMeshes[lsubIndex]->data = data;
             
@@ -416,14 +438,21 @@ void GeomExporter::doExport(FbxObject* pObject){
             
             data->indices 	= tIndices;
             
+            
             data->vertices 	= new awd_float64[lsgNumVertices * 3];
-            data->normals 	= new awd_float64[lsgNumVertices * 3];
-            data->uvs 		= new awd_float64[lsgNumVertices * 2];
-            
-            
             memcpy(data->vertices, 	tVertices, 	lsgNumVertices * 3 * sizeof( awd_float64 ) );
-            memcpy(data->normals, 	tNormals, 	lsgNumVertices * 3 * sizeof( awd_float64 ) );
-            memcpy(data->uvs	, 	tUVs, 		lsgNumVertices * 2 * sizeof( awd_float64 ) );
+
+            if (mHasNormal) {
+	            data->normals 	= new awd_float64[lsgNumVertices * 3];
+                memcpy(data->normals, 	tNormals, 	lsgNumVertices * 3 * sizeof( awd_float64 ) );
+            }
+            
+            if( mHasUV ) {
+                data->uvs 		= new awd_float64[lsgNumVertices * 2];
+                memcpy(data->uvs	, 	tUVs, 		lsgNumVertices * 2 * sizeof( awd_float64 ) );
+            }
+            
+            
             
             
      		
@@ -557,3 +586,144 @@ void GeomExporter::doExport(FbxObject* pObject){
     FBXSDK_printf("Geometry exported : %s\n", pObject->GetName() );
     
 }
+
+
+// ---------------------
+// Collapser
+//
+
+Collapser::Collapser(unsigned int *pIndices, unsigned int pNumIndices, unsigned int pNumVertices )
+{
+    mIndices 		= pIndices;
+    mNumIndices 	= pNumIndices;
+    mNumVertices 	= pNumVertices;
+    
+    mRemapTable = new unsigned int[mNumVertices];
+
+    
+    // identity map
+    //
+    for (int i = 0; i < pNumVertices; i++) {
+        mRemapTable[i] = i;
+    }
+    
+}
+
+Collapser::~Collapser()
+{
+    for(int i=0; i < mStreams.GetCount(); i++)
+    {
+        delete mStreams[i];
+    }
+    
+    mStreams.Clear();
+    
+    delete [] mRemapTable;
+}
+
+
+void Collapser::addStream(awd_float64 *data, unsigned int csize)
+{
+    int numStreams = mStreams.GetCount();
+    
+    mStreams.Resize(numStreams+1 );
+    
+    mStreams[numStreams] = new Stream();
+    
+    mStreams[numStreams]->csize = csize;
+    mStreams[numStreams]->data = data;
+    
+}
+
+//
+// brute force but simple collapsing
+// should probably be optimized...
+//
+void Collapser::collapse()
+{
+    
+    int numStreams = mStreams.GetCount();
+    
+    
+    FBXSDK_printf("start collapse, num verts : %i \n", mNumVertices );
+    
+    unsigned int lCurrent = 0;
+    unsigned int lCompare = 0;
+    
+    
+    for ( lCurrent = 0; lCurrent < mNumVertices-1; lCurrent++ )
+    {
+        
+        if( mRemapTable[lCurrent] != lCurrent )
+        {
+            // this vertex is already remapped to a previous one
+            // skip
+            // ----
+            continue;
+        }
+        
+        // compare current with all following vertices
+        // -----
+        for ( lCompare = lCurrent+1; lCompare < mNumVertices; )
+        {
+            
+            
+            // for current/compare we check equality of all streams / all components
+            // loop in streams then components
+            // -----
+            for ( int streamIndex = 0; streamIndex < numStreams; streamIndex++ ) {
+                
+                
+                
+                unsigned int csize	= mStreams[streamIndex]->csize;
+                awd_float64 *data 	= mStreams[streamIndex]->data;
+                
+                for (int comp = 0; comp < csize; comp++) {
+                    
+                    // Todo : compare with an epsilon ?
+                    //
+                    if( data[ lCurrent*csize + comp ] != data[ lCompare*csize + comp ] ){
+                        // components are not equals
+                        // skip this vertex, go to next one
+                        // ------
+                        goto nextVert;
+                    }
+                    
+                    
+                }
+                
+                
+            }
+            
+    		// lCompare is the same vertex than lCurrent
+            //
+            mRemapTable[lCompare] = lCurrent;
+            
+            nextVert :
+            lCompare++;
+            
+        }
+        
+    }
+    
+    
+    int i;
+
+    for (i = 0; i < mNumIndices; i++) {
+        mIndices[i] = mRemapTable[ mIndices[i] ];
+    }
+    
+    
+//    int newLen = 0;
+//    for (i = 0; i < mNumVertices; i++) {
+//        if( mRemapTable[i] == i )
+//            newLen++;
+//    }
+//    FBXSDK_printf("complete collapse, num verts : %i \n", newLen );
+    
+    
+}
+
+
+
+
