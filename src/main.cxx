@@ -30,7 +30,7 @@
 
 #include "Common.h"
 
-#define SAMPLE_FILENAME "/Users/plepers/work/workspaces/c/fbx_awd_converter/sample/box.fbx"
+#define SAMPLE_FILENAME "/Users/plepers/work/workspaces/c/awd_tools/AwayExtensions-FBXPlugin/samples/box.FBX"
 
 const char* lFileTypes[] =
 {

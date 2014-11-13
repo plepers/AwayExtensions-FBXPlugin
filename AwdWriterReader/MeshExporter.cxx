@@ -45,6 +45,10 @@ void MeshExporter::doExport(FbxObject* pObj){
         }
         
         geomBlock = mBlocksMap->Get( lMesh );
+        
+        if( geomBlock == NULL ){
+            FBXSDK_printf( "WARN : geom not found/exported, mesh exported without geometry! \n" );
+        }
 
     }
     
@@ -56,12 +60,12 @@ void MeshExporter::doExport(FbxObject* pObj){
     
     
     
-//    const char *name = pNode->GetName();
-//    AWDMeshInst* awdContainer = new AWDMeshInst( name, strlen(name) );
-//    
-//    CopyNodeTransform( pNode, awdContainer );
-//    
-//    
-//    mAwd->add_scene_block( awdContainer );
+    const char *name = pNode->GetName();
+    AWDMeshInst* awdMesh = new AWDMeshInst( name, strlen(name), geomBlock );
+    
+    CopyNodeTransform( pNode, awdMesh );
+    
+    
+    mAwd->add_mesh_data( awdMesh );
     
 }
