@@ -176,7 +176,7 @@ void AwdWriter::ExportScene(FbxScene* pScene )
 //
 bool AwdWriter::ExportNodeAndChildren(FbxNode* pNode)
 {
-    bool exported = FALSE;
+    bool exported = false;
     
     FbxNode* lChildNode;
     
@@ -187,7 +187,7 @@ bool AwdWriter::ExportNodeAndChildren(FbxNode* pNode)
         lChildNode = pNode->GetChild (lNodeChildCount);
         
         if( ExportNodeAndChildren(lChildNode) ) {
-            exported = TRUE;
+            exported = true;
         }
     }
     
@@ -239,7 +239,7 @@ bool AwdWriter::ExportNode(FbxNode* pNode, bool force )
         exporter->setup(mAwd, mManager, mBlocksMap);
         exporter->doExport( pNode );
         exporter->release();
-        exported = TRUE;
+        exported = true;
     }
     
     
