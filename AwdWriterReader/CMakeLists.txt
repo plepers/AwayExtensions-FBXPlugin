@@ -28,3 +28,10 @@ add_library( AwdWriterReader_static ${AwdWriterReader_SOURCES} )
 
 add_library( AwdWriterReader SHARED ${AwdWriterReader_SOURCES} )
 TARGET_LINK_LIBRARIES ( AwdWriterReader ${LINK_LIBRARIES} )
+
+if( FBX_EXT_FOUND )
+
+  add_library( AwdWriterReader_max SHARED ${AwdWriterReader_SOURCES} )
+  TARGET_LINK_LIBRARIES ( AwdWriterReader_max ${FBX_EXT_LIBRARIES} ${AWD_LIBRARIES} )
+
+endif()

@@ -64,7 +64,7 @@ void MaterialExporter::doExport(FbxObject *pObj )
     
     const char* name = lMat->GetName();
     
-    AWDMaterial *awdMat = new AWDMaterial( name, strlen( name ) );
+    AWDMaterial *awdMat = new AWDMaterial( name, static_cast<unsigned short>(strlen(name)) );
     
     // TODO : implement materials export
     

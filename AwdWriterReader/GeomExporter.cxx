@@ -543,7 +543,7 @@ void GeomExporter::doExport(FbxObject* pObject){
     
     
     const char *name = "gegeom";//pMesh->GetName();
-    AWDTriGeom* geom = new AWDTriGeom( name, strlen( name ) );
+    AWDTriGeom* geom = new AWDTriGeom( name, static_cast<unsigned short>(strlen(name)) );
     
     for ( lsubIndex = 0; lsubIndex<mSubMeshes.GetCount(); lsubIndex++) {
         FBXSDK_printf("    submesh num tris : %i\n",mSubMeshes[lsubIndex]->TriangleCount );
@@ -610,7 +610,7 @@ Collapser::Collapser(unsigned int *pIndices, unsigned int pNumIndices, unsigned 
     
     // identity map
     //
-    for (int i = 0; i < pNumVertices; i++) {
+    for (unsigned int i = 0; i < pNumVertices; i++) {
         mRemapTable[i] = i;
     }
     
@@ -685,7 +685,7 @@ void Collapser::collapse()
                 unsigned int csize	= mStreams[streamIndex]->csize;
                 awd_float64 *data 	= mStreams[streamIndex]->data;
                 
-                for (int comp = 0; comp < csize; comp++) {
+                for (unsigned int comp = 0; comp < csize; comp++) {
                     
                     // Todo : compare with an epsilon ?
                     //
@@ -714,7 +714,7 @@ void Collapser::collapse()
     }
     
     
-    int i;
+    unsigned int i;
 
     for (i = 0; i < mNumIndices; i++) {
         mIndices[i] = mRemapTable[ mIndices[i] ];
