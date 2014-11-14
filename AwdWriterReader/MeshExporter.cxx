@@ -61,7 +61,7 @@ void MeshExporter::doExport(FbxObject* pObj){
     
     
     const char *name = pNode->GetName();
-    AWDMeshInst* awdMesh = new AWDMeshInst( name, strlen(name), geomBlock );
+    AWDMeshInst* awdMesh = new AWDMeshInst( name, static_cast<unsigned short>(strlen(name)), geomBlock );
     
     CopyNodeTransform( pNode, awdMesh );
     
