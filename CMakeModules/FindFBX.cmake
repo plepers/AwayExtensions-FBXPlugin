@@ -13,6 +13,8 @@
 #    FBX_ROOT - (as a CMake or environment variable)
 #               The root directory of the FBX SDK install
 
+set( FBX_NOT_FOUND_MESSAGE "Unable to find FBX SDK, be sure to install it." )
+
 if(NOT FBX_VERSION)
     set(FBX_VERSION 2015.1)
 endif()
@@ -78,7 +80,7 @@ endif()
 
 
 include(FindPackageHandleStandardArgs)
-FIND_PACKAGE_HANDLE_STANDARD_ARGS(FBX DEFAULT_MSG FBX_LIBRARY FBX_INCLUDE_DIR)
+FIND_PACKAGE_HANDLE_STANDARD_ARGS(FBX ${FBX_NOT_FOUND_MESSAGE} FBX_LIBRARY FBX_INCLUDE_DIR)
 
 if(FBX_FOUND)
     set(FBX_INCLUDE_DIRS ${FBX_INCLUDE_DIR})

@@ -18,6 +18,9 @@ set (FbxAwdExporter_VERSION_MINOR 0)
 FIND_PACKAGE(FBX REQUIRED)
 ADD_DEFINITIONS(-DFBX_VERSION_MAJOR=${FBX_VERSION_MAJOR})
 
+# find FBX_Extensions_SDK
+FIND_PACKAGE(FBXExt)
+
 # find AWD cpp library
 find_path( AWD_INCLUDE_DIRS awd )
 find_library( AWD_LIBRARIES awd_static )
