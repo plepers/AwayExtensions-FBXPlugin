@@ -66,7 +66,7 @@ bool AwdWriter::FileCreate(char* pFileName)
     {
         FileClose();
     }
-    FBXSDK_fopen(mFilePointer,pFileName,"w");
+    FBXSDK_fopen(mFilePointer,pFileName,"wb");
     if(mFilePointer == NULL)
     {
         return false;
