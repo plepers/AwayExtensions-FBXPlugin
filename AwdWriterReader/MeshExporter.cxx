@@ -26,23 +26,20 @@ void MeshExporter::doExport(FbxObject* pObj){
     
     
     //
-    // export geometry
+    // export Geometry
     //
+    
     AWDBlock *geomBlock = NULL;
     
     FbxMesh *lMesh = pNode->GetMesh();
     
     if( lMesh ){
-        geomBlock = mBlocksMap->Get( lMesh );
+        GeomExporter* gExporter = new GeomExporter();
+        gExporter->setup( mAwd, mFbxManager, mBlocksMap );
+        gExporter->doExport( lMesh );
+        gExporter->release();
         
-        if( !geomBlock ) {
-            
-            GeomExporter* gExporter = new GeomExporter();
-            gExporter->setup( mAwd, mFbxManager, mBlocksMap );
-            gExporter->doExport( lMesh );
-            gExporter->release();
-            
-        }
+        lMesh = pNode->GetMesh();
         
         geomBlock = mBlocksMap->Get( lMesh );
         
@@ -53,11 +50,9 @@ void MeshExporter::doExport(FbxObject* pObj){
     }
     
     
-    
-    
-    
-    
-    
+    //
+    // export MeshInstance
+    //
     
     
     const char *name = pNode->GetName();

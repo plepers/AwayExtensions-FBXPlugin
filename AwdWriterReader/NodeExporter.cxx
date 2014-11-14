@@ -181,25 +181,25 @@ void CopyNodeTransform( FbxNode* pNode, AWDSceneBlock* sceneBlock )
     FbxDouble3 lRotation    = pNode->LclRotation.Get();
     FbxDouble3 lScaling     = pNode->LclScaling.Get();
     
-    FBXSDK_printf( "  %f, %f, %f\n", lTranslation.mData[0], lTranslation.mData[1], lTranslation.mData[2] );
-    FBXSDK_printf( "  %f, %f, %f\n", lRotation.mData[0], lRotation.mData[1], lRotation.mData[2] );
-    FBXSDK_printf( "  %f, %f, %f\n", lScaling.mData[0], lScaling.mData[1], lScaling.mData[2] );
-
-    FBXSDK_printf( "%f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f\n",
-                rawMatrix[0] ,
-                rawMatrix[1] ,
-                rawMatrix[2] ,
-                rawMatrix[3] ,
-                rawMatrix[4] ,
-                rawMatrix[5] ,
-                rawMatrix[6] ,
-                rawMatrix[7] ,
-                rawMatrix[8] ,
-                rawMatrix[9] ,
-                rawMatrix[10],
-                rawMatrix[11] 
-                  
-                  );
+//    FBXSDK_printf( "  %f, %f, %f\n", lTranslation.mData[0], lTranslation.mData[1], lTranslation.mData[2] );
+//    FBXSDK_printf( "  %f, %f, %f\n", lRotation.mData[0], lRotation.mData[1], lRotation.mData[2] );
+//    FBXSDK_printf( "  %f, %f, %f\n", lScaling.mData[0], lScaling.mData[1], lScaling.mData[2] );
+//
+//    FBXSDK_printf( "%f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f\n",
+//                rawMatrix[0] ,
+//                rawMatrix[1] ,
+//                rawMatrix[2] ,
+//                rawMatrix[3] ,
+//                rawMatrix[4] ,
+//                rawMatrix[5] ,
+//                rawMatrix[6] ,
+//                rawMatrix[7] ,
+//                rawMatrix[8] ,
+//                rawMatrix[9] ,
+//                rawMatrix[10],
+//                rawMatrix[11] 
+//                  
+//                  );
 
     
     // todo : check values

@@ -6,11 +6,18 @@
 //
 //
 
+// TODO : add secondary uvs, tangant and binormal
+// TODO : add skinning support
+
+
+
 #include "GeomExporter.h"
 #include "MaterialExporter.h"
 
 
 const int TRIANGLE_VERTEX_COUNT = 3;
+
+
 
 bool GeomExporter::isHandleObject( FbxObject *pObj ){
     return ( pObj->Is<FbxMesh>() );
@@ -18,18 +25,21 @@ bool GeomExporter::isHandleObject( FbxObject *pObj ){
 
 
 void GeomExporter::doExport(FbxObject* pObject){
-        
-    /*
-     * return if geom already exported
-     */
+    
+    //
+    // this geom is already exported
+    // skip now
+    //
     if( mBlocksMap->Get(pObject) ){
         return;
     }
     
     
     FbxMesh* pMesh = (FbxMesh*) pObject;
-//    FbxMesh *pMesh = (FbxMesh*) pNode;
     
+    //
+    // this geom is not used in scene graph
+    //
     if (!pMesh->GetNode())
         return;
     
@@ -38,6 +48,7 @@ void GeomExporter::doExport(FbxObject* pObject){
     // here we should be able to triangulate nurbs and patch too
     // but maybe we should use a dedicated NodeExporter
     //
+    
     FbxGeometryConverter *geomConverter = new FbxGeometryConverter( mFbxManager );
     FbxNodeAttribute *nodeAttribute = geomConverter->Triangulate( pMesh, false );
     
@@ -128,6 +139,7 @@ void GeomExporter::doExport(FbxObject* pObject){
     // Congregate all the data of a mesh to be cached in VBOs.
     // If normal or UV is by polygon vertex, record all vertex attributes by polygon vertex.
     // Here, all submeshes share the same VBOs, we will split them later
+    // after a "collapsing" pass
     
     mHasNormal = pMesh->GetElementNormalCount() > 0;
     mHasUV = pMesh->GetElementUVCount() > 0;
@@ -334,8 +346,8 @@ void GeomExporter::doExport(FbxObject* pObject){
     unsigned int *tIndices;
     
     awd_float64 *tVertices = new awd_float64[ lPolygonVertexCount * 3 ];
-    awd_float64 *tNormals;
-    awd_float64 *tUVs;
+    awd_float64 *tNormals = NULL;
+    awd_float64 *tUVs = NULL;
     
     if (mHasNormal)
     {
@@ -479,26 +491,21 @@ void GeomExporter::doExport(FbxObject* pObject){
 	    free( tUVs );
     
     
+    lVertices = NULL;
+    lIndices = NULL;
+    lNormals = NULL;
+    lUVs = NULL;
+    tVertices = NULL;
+    tNormals = NULL;
+    tUVs = NULL;
     
     
     
     
     
-//
-//    FbxGeometryConverter *converter = new FbxGeometryConverter( mFbxManager );
-//
-//    converter->EmulateNormalsByPolygonVertex( (FbxMesh*) pNode );
-//
-//    conveter->SplitMeshPerMaterial( )
-//
     
-    bool splitFacs  = false; // awdGeom->get_split_faces()
-    bool forceSplit = false;
-    bool useUV      = mHasUV;
-    bool useSecUvs  = false;
-    bool useNormals = mHasNormal;
-    
-    double nrmThreshold = 0.0;
+
+
     // TODO : handle hi precision
     AWD_field_type precision_geo = AWD_FIELD_FLOAT32;
     
@@ -580,7 +587,7 @@ void GeomExporter::doExport(FbxObject* pObject){
         }
     }
     
-    mBlocksMap->Set( pObject, geom );
+    mBlocksMap->Set( pMesh, geom );
     
     
     FBXSDK_printf("Geometry exported : %s\n", pObject->GetName() );
