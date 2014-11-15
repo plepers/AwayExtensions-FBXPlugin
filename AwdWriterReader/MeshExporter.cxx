@@ -35,19 +35,22 @@ void MeshExporter::doExport(FbxObject* pObj){
     
     if( lMesh ){
         GeomExporter* gExporter = new GeomExporter();
-        gExporter->setup( mAwd, mFbxManager, mBlocksMap );
+        gExporter->setup( mContext );
         gExporter->doExport( lMesh );
         gExporter->release();
         
         lMesh = pNode->GetMesh();
         
-        geomBlock = mBlocksMap->Get( lMesh );
+        geomBlock = mContext->GetBlocksMap()->Get( lMesh );
         
         if( geomBlock == NULL ){
             FBXSDK_printf( "WARN : geom not found/exported, mesh exported without geometry! \n" );
         }
 
     }
+    
+    
+
     
     
     //
@@ -61,6 +64,32 @@ void MeshExporter::doExport(FbxObject* pObj){
     CopyNodeTransform( pNode, awdMesh );
     
     
-    mAwd->add_mesh_data( awdMesh );
+    mContext->add_mesh_data( awdMesh, pNode );
+    
+    
+    
+    
+    //
+    // retreive materials
+    // 
+    // materials should have already been exported
+    // by GeomExporter. Just retreive them from cache.
+    
+    AWDBlockList *materialList = new AWDBlockList();
+    
+    int numMaterials = pNode->GetMaterialCount();
+    
+    for ( int matIndex = 0; matIndex < numMaterials; matIndex++ )
+    {
+        AWDBlock *matBlock = mContext->GetBlocksMap()->Get(pNode->GetMaterial( matIndex ) );
+        materialList->append( matBlock );
+        awdMesh->add_material( (AWDMaterial*)matBlock );
+    }
+    
+    
+    
+    awdMesh->set_defaultMat(materialList->getByIndex(0));
+    awdMesh->set_pre_materials( materialList );
+    
     
 }

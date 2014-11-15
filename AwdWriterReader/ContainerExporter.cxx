@@ -21,8 +21,6 @@ void ContainerExporter::doExport(FbxObject* pObj){
     
     CopyNodeTransform( lNode, awdContainer );
     
-    
-    mBlocksMap->Set( lNode, awdContainer );
-    mAwd->add_scene_block( awdContainer );
+    mContext->add_scene_block( awdContainer, lNode );
     
 }

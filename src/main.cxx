@@ -30,7 +30,9 @@
 
 #include "Common.h"
 
-#define SAMPLE_FILENAME "/Users/plepers/work/workspaces/c/fbx_awd_converter/sample/box.fbx"
+// #define SAMPLE_FILENAME "/Users/plepers/work/workspaces/c/fbx_awd_converter/sample/box_blender.fbx"
+#define SAMPLE_FILENAME "/Users/plepers/work/libs/metaioSDK/_Unity/Example/Assets/TutorialInstantTracking/tiger/tiger.fbx"
+
 
 const char* lFileTypes[] =
 {

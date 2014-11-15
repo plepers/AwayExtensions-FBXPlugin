@@ -11,7 +11,8 @@ set( AwdWriterReader_SOURCES
   MeshExporter.cxx
   GeomExporter.cxx
   MaterialExporter.cxx
-  
+  ExportContext.cxx
+
   AwdReader.h
   AwdWriter.h
   AwdWriterReader.h
@@ -22,6 +23,7 @@ set( AwdWriterReader_SOURCES
   MeshExporter.h
   GeomExporter.h
   MaterialExporter.h
+  ExportContext.h
 )
 
 add_library( AwdWriterReader_static ${AwdWriterReader_SOURCES} )

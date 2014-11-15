@@ -133,19 +133,15 @@ FbxAMatrix CalculateGlobalTransform(FbxNode* pNode)
 
 
 
-void NodeExporter::setup( AWD* awd, FbxManager* fbxManager, BlocksMap *blocksMap )
+void NodeExporter::setup( ExportContext *context )
 {
-    mAwd = awd;
-    mFbxManager = fbxManager;
-    mBlocksMap = blocksMap;
+    mContext = context;
 }
-
-
 
 
 void NodeExporter::release( )
 {
-    mAwd = NULL;
+    mContext = NULL;
 }
 
 

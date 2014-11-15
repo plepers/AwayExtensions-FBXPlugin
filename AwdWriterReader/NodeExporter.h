@@ -11,20 +11,18 @@
 
 #include <awd/awd.h>
 #include <fbxsdk.h>
-#include "BlocksMap.h"
 
+#include "ExportContext.h"
 //This class is a custom writer.
 //The writer provide you the ability to write out node hierarchy to a custom file format.
-
 
 
 class NodeExporter
 {
 public:
     
-    void setup( AWD* awd, FbxManager* fbxManager, BlocksMap *blocksMap );
+    void setup( ExportContext *context );
     void release();
-    
     
     virtual bool isHandleObject( FbxObject* ) = 0;
    
@@ -32,9 +30,7 @@ public:
     
 protected:
     
-    AWD         *mAwd;
-    FbxManager  *mFbxManager;
-    BlocksMap   *mBlocksMap;
+    ExportContext   *mContext;
 };
 
 //

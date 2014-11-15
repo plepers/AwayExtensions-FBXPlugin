@@ -30,7 +30,7 @@ void GeomExporter::doExport(FbxObject* pObject){
     // this geom is already exported
     // skip now
     //
-    if( mBlocksMap->Get(pObject) ){
+    if( mContext->GetBlocksMap()->Get(pObject) ){
         return;
     }
     
@@ -49,7 +49,7 @@ void GeomExporter::doExport(FbxObject* pObject){
     // but maybe we should use a dedicated NodeExporter
     //
     
-    FbxGeometryConverter *geomConverter = new FbxGeometryConverter( mFbxManager );
+    FbxGeometryConverter *geomConverter = new FbxGeometryConverter( mContext->GetFbxManager() );
     FbxNodeAttribute *nodeAttribute = geomConverter->Triangulate( pMesh, false );
     
     FBX_ASSERT_MSG( nodeAttribute != NULL, "Mesh triangulation failed");
@@ -511,9 +511,13 @@ void GeomExporter::doExport(FbxObject* pObject){
     
     
     // create and setup a material exporter
+    //
+    // Materials should be exported by MeshExporter
+    // but AWDSubGeom need matList in constructor
+    // so we export them here.
     
     MaterialExporter *matExporter = new MaterialExporter();
-    matExporter->setup(mAwd, mFbxManager, mBlocksMap );
+    matExporter->setup( mContext );
     
     AWDBlockList *matList = new AWDBlockList();
     
@@ -522,12 +526,13 @@ void GeomExporter::doExport(FbxObject* pObject){
             
             // material
             FbxSurfaceMaterial * lMaterial = pMesh->GetNode()->GetMaterial( lsubIndex );
+
             if( lMaterial ) {
                 FBX_ASSERT( matExporter->isHandleObject( lMaterial ) );
             
                 matExporter->doExport( lMaterial );
             
-                AWDBlock *mat = mBlocksMap->Get( lMaterial );
+                AWDBlock *mat = mContext->GetBlocksMap()->Get( lMaterial );
                 matList->append(mat);
             }
             else {
@@ -542,7 +547,7 @@ void GeomExporter::doExport(FbxObject* pObject){
     
     
     
-    const char *name = "gegeom";//pMesh->GetName();
+    const char *name = pMesh->GetName();
     AWDTriGeom* geom = new AWDTriGeom( name, static_cast<unsigned short>(strlen(name)) );
     
     for ( lsubIndex = 0; lsubIndex<mSubMeshes.GetCount(); lsubIndex++) {
@@ -587,7 +592,7 @@ void GeomExporter::doExport(FbxObject* pObject){
         }
     }
     
-    mBlocksMap->Set( pMesh, geom );
+    mContext->GetBlocksMap()->Set( pMesh, geom );
     
     
     FBXSDK_printf("Geometry exported : %s\n", pObject->GetName() );

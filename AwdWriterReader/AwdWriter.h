@@ -14,9 +14,8 @@
 
 #include <fbxsdk.h>
 #include <awd/awd.h>
-#include <NodeExporter.h>
-#include <BlocksMap.h>
-
+#include <ExportContext.h>
+#include "NodeExporter.h"
 
 
 
@@ -48,8 +47,6 @@ private:
 };
 
 
-
-
 class ExporterProvider
 {
 public:
@@ -66,10 +63,6 @@ private:
     ExporterLinkedItem 	*mTail;
     NodeExporter		*mDefault;
 };
-
-
-
-
 
 
 
@@ -97,11 +90,14 @@ public:
     virtual bool ExportNode(FbxNode* pNode, bool force=false );
 
 private:
+    
+    ExporterProvider*   CreateExporterProvider();
+    
     FILE				*mFilePointer;
     FbxManager			*mManager;
-    AWD					*mAwd;
+    ExportContext       *mContext;
     ExporterProvider	*mExporters;
-    BlocksMap           *mBlocksMap;
+    
 };
 
 

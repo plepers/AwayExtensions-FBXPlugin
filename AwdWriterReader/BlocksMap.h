@@ -15,7 +15,7 @@
 /**
  * BlockCache
  * Cache that is used generically to store any type of block or
- * sub-element in a look-up table by MAX object.
+ * sub-element in a look-up table by FBX object.
  */
 typedef struct BlocksMapItem_struct {
     void *key;

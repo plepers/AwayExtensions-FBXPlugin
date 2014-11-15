@@ -1,41 +1,16 @@
-/****************************************************************************************
 
-   Copyright (C) 2014 Autodesk, Inc.
-   All rights reserved.
+#include <awd/awd.h>
 
-   Use of this software is subject to the terms of the Autodesk license agreement
-   provided at the time of installation or download, or which otherwise accompanies
-   this software in either electronic or hard copy form.
-
-****************************************************************************************/
 
 #include "AwdWriter.h"
 #include "AwdWriterReader.h"
 #include "Settings.h"
 
+
 #include <ContainerExporter.h>
 #include <MeshExporter.h>
 
 #include <awd/awd.h>
-
-
-
-
-/*
- * The default ExportProvider factory
- *
- */
-ExporterProvider* CreateExporterProvider(){
-    
-    ContainerExporter* pDefault = new ContainerExporter();
-    
-    ExporterProvider* provider = new ExporterProvider( pDefault );
-    
-    // add exporter for each fbx nodes types here
-    provider->addExporter( new MeshExporter() );
-    
-    return provider;
-}
 
 
 
@@ -125,6 +100,25 @@ bool AwdWriter::Write(FbxDocument* pDocument)
 }
 
 
+/*
+ * The default ExportProvider factory
+ * register handlers for FbxNode subclasses
+ *
+ */
+ExporterProvider* AwdWriter::CreateExporterProvider(){
+    
+    ContainerExporter* pDefault = new ContainerExporter();
+    
+    ExporterProvider* provider = new ExporterProvider( pDefault );
+    
+    // add exporter for each fbx nodes types here
+    provider->addExporter( new MeshExporter() );
+    
+    return provider;
+}
+
+
+
 
 // Pre-process the scene before write it out
 bool AwdWriter::PreprocessScene(FbxScene& /*pScene*/)
@@ -137,10 +131,8 @@ bool AwdWriter::PreprocessScene(FbxScene& /*pScene*/)
 //    FBXSDK_printf("%s\n", props.Buffer() );
 //    s->WriteXMLFile( dir );
     
-    mAwd = AwdSettings::createAwd( s );
     mExporters = CreateExporterProvider();
-    mBlocksMap = new BlocksMap();
-    
+    mContext = new ExportContext( s, mManager );
     FBXSDK_printf("I'm in pre-process\n");
     return true;
 }
@@ -151,8 +143,10 @@ bool AwdWriter::PreprocessScene(FbxScene& /*pScene*/)
 bool AwdWriter::PostprocessScene(FbxScene& /*pScene*/)
 {
     int fd = fileno( mFilePointer );
-    mAwd->flush( fd );
-    mExporters = NULL;
+    mContext->GetAwd()->flush( fd );
+    
+    delete mContext;
+    delete mExporters;
     
     FBXSDK_printf("I'm in post process\n");
     return true;
@@ -211,16 +205,6 @@ bool AwdWriter::ExportNode(FbxNode* pNode, bool force )
     
     FBXSDK_printf("ExportNode %s\n", pNode->GetName() );
     
-//    FbxNodeAttribute* attr = pNode->GetNodeAttribute();
-//    if( attr ){
-//        FBXSDK_printf("  attr %s\n", attr->GetName() );
-//        
-//        attr = attr->GetNodeAttribute();
-//        if( attr )
-//            FBXSDK_printf("      attr %s\n", attr->GetName() );
-//
-//    }
-    
     
     bool exported = force;
     
@@ -236,7 +220,7 @@ bool AwdWriter::ExportNode(FbxNode* pNode, bool force )
     }
     
     if( exporter ){
-        exporter->setup(mAwd, mManager, mBlocksMap);
+        exporter->setup( mContext );
         exporter->doExport( pNode );
         exporter->release();
         exported = true;
