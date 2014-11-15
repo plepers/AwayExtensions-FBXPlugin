@@ -48,6 +48,8 @@ const char* lFileTypes[] =
 
 int main(int argc, char** argv)
 {
+    
+    
     FbxString lFilePath("");
     for( int i = 1, c = argc; i < c; ++i )
     {
@@ -61,6 +63,7 @@ int main(int argc, char** argv)
 
     // Prepare the FBX SDK.
     InitializeSdkObjects(lSdkManager, lScene);
+    
 
     bool lResult = LoadScene(lSdkManager, lScene, lFilePath.Buffer());
     if( lResult )

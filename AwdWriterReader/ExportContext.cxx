@@ -16,10 +16,21 @@
 
 ExportContext::ExportContext( FbxIOSettings* pSettings, FbxManager* pFbxMngr )
 {
-    
-    mAwd = AwdSettings::createAwd( pSettings );
+    mSettings = new Settings( pSettings );
     mBlocksMap = new BlocksMap();
     mManager = pFbxMngr;
+    
+    BlockSettings *lBlockSettings = new BlockSettings( false, false, false, false, 1.0 );
+    mSettings->setupBlockSettings(lBlockSettings);
+    
+    mAwd = new AWD(
+        mSettings->get_compression(),   
+        0,                              
+        NULL,                           
+        mSettings->get_split_by_root(), 
+        lBlockSettings,
+        mSettings->get_export_empty()   
+    );
 
 }
 

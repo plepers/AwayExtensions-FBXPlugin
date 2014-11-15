@@ -22,36 +22,56 @@
 #define EXPORT_EMPTY        "export_empty"
 #define SPLIT_BY_ROOT       "split_by_root"
 
-namespace AwdSettings {
 
-    AWD* createAwd( FbxIOSettings *pIOS );
+#define AWD_OPTION_GROUP EXP_ADV_OPT_GRP
 
-    void setupBlockSettings( FbxIOSettings *, BlockSettings * );
+#define PROP_ID( _ID ) AWD_OPTION_GROUP "|" PLUGIN_NAME "|" _ID
 
-    void FillFbxIOSettings(FbxIOSettings& );
-
-    FbxProperty getSettingsGroup(FbxIOSettings* );
-
-    bool get_wide_matrix    (FbxIOSettings* );
-    bool get_wide_geoms     (FbxIOSettings* );
-    bool get_wide_props     (FbxIOSettings* );
-    bool get_wide_attribs   (FbxIOSettings* );
-    bool get_export_empty   (FbxIOSettings* );
-    bool get_split_by_root  (FbxIOSettings* );
-    double get_scale        (FbxIOSettings* );
-
-    AWD_compression get_compression        (FbxIOSettings* );
-
-    void set_wide_matrix    (FbxIOSettings*, bool );
-    void set_wide_geoms     (FbxIOSettings*, bool );
-    void set_wide_props     (FbxIOSettings*, bool );
-    void set_wide_attribs   (FbxIOSettings*, bool );
-    void set_export_empty   (FbxIOSettings*, bool );
-    void set_split_by_root  (FbxIOSettings*, bool );
-    void set_scale          (FbxIOSettings*, double );
-
-    void set_compression        (FbxIOSettings*, AWD_compression );
-
-}
+class Settings
+{
+public:
+    
+    Settings( FbxIOSettings* );
+    
+    
+    void setupBlockSettings( BlockSettings * );
+    
+    
+    FbxProperty getSettingsGroup();
+    
+    void set_wide_matrix    ( bool );
+    void set_wide_geoms     ( bool );
+    void set_wide_props     ( bool );
+    void set_wide_attribs   ( bool );
+    void set_export_empty   ( bool );
+    void set_split_by_root  ( bool );
+    void set_scale          ( double );
+    void set_compression    ( AWD_compression );
+    
+    bool get_wide_matrix    ();
+    bool get_wide_geoms     ();
+    bool get_wide_props     ();
+    bool get_wide_attribs   ();
+    bool get_export_empty   ();
+    bool get_split_by_root  ();
+    double get_scale        ();
+    AWD_compression get_compression();
+    
+    static void FillDefaultValues( FbxIOSettings * );
+    
+private:
+    FbxIOSettings   *mIOSettings;
+    
+    
+    static FbxProperty wide_matrix_property  (FbxIOSettings *pIOS);
+    static FbxProperty wide_geoms_property   (FbxIOSettings *pIOS);
+    static FbxProperty wide_props_property   (FbxIOSettings *pIOS);
+    static FbxProperty wide_attribs_property (FbxIOSettings *pIOS);
+    static FbxProperty export_empty_property (FbxIOSettings *pIOS);
+    static FbxProperty split_by_root_property(FbxIOSettings *pIOS);
+    static FbxProperty scale_property        (FbxIOSettings *pIOS);
+    static FbxProperty compression_property  (FbxIOSettings *pIOS);
+    
+};
 
 #endif

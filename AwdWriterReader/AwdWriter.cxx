@@ -247,6 +247,7 @@ ExporterLinkedItem::ExporterLinkedItem(NodeExporter *exporter )
 ExporterLinkedItem::~ExporterLinkedItem()
 {
     mExporter = NULL;
+    mNext = NULL;
 }
 
 
@@ -278,6 +279,17 @@ ExporterProvider::ExporterProvider( NodeExporter* pDefault )
     mDefault = pDefault;
     mHead = NULL;
     mTail = NULL;
+}
+
+ExporterProvider::~ExporterProvider( )
+{
+    ExporterLinkedItem *cur = mHead;
+    while (cur) {
+        ExporterLinkedItem *next = cur->next();
+        delete cur;
+        cur = next;
+    }
+    mHead = mTail = NULL;
 }
 
 void ExporterProvider::addExporter(NodeExporter *exporter)

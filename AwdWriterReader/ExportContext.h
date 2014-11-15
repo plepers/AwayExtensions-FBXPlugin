@@ -12,7 +12,7 @@
 #include <fbxsdk.h>
 #include <awd/awd.h>
 #include <BlocksMap.h>
-
+#include "Settings.h"
 
 
 
@@ -56,9 +56,10 @@ public:
     void add_effect_method_block(AWDEffectMethod *, FbxObject *pObj );
     
 private:
-    FbxManager			*mManager;
-    AWD					*mAwd;
-    BlocksMap           *mBlocksMap;
+    FbxManager	*mManager;
+    AWD			*mAwd;
+    BlocksMap   *mBlocksMap;
+    Settings    *mSettings;
 };
 
 #endif /* defined(__FbxAwdExporter__ExportContext__) */

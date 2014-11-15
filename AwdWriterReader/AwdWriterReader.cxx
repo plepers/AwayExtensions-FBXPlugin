@@ -52,7 +52,7 @@ void* GetAwdWriterInfo(FbxWriter::EInfoRequest pRequest, int /*pId*/)
 
 void FillAwdWriterIOSettings(FbxIOSettings& pIOS )
 {
-    AwdSettings::FillFbxIOSettings( pIOS );
+    Settings *s = new Settings( &pIOS );
 }
 
 

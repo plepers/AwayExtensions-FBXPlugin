@@ -2,46 +2,30 @@
 #include "AwdWriterReader.h"
 #include "Settings.h"
 
-#define AWD_OPTION_GROUP EXP_ADV_OPT_GRP
 
-AWD* AwdSettings::createAwd( FbxIOSettings *pIOS ){
-
-    BlockSettings * bs = new BlockSettings(
-        AwdSettings::get_wide_matrix(pIOS),
-        AwdSettings::get_wide_props(pIOS),
-        AwdSettings::get_wide_attribs(pIOS),
-        AwdSettings::get_wide_geoms(pIOS),
-        AwdSettings::get_scale(pIOS)
-    );
-
-    AWD* awd = new AWD(
-        AwdSettings::get_compression(pIOS),     // AWD_compression compression,
-        0,                                      // awd_uint16 flags,
-        NULL,                            		// char *outPathName,
-        AwdSettings::get_split_by_root(pIOS),   // bool splitByRootObjs,
-        bs,                                     // BlockSettings * thisBlockSettings,
-        AwdSettings::get_export_empty(pIOS)     // bool exportEmtpyContainers
-    );
-
-    return awd;
+Settings::Settings( FbxIOSettings* pIOSettings )
+{
+    FillDefaultValues( pIOSettings );
+    mIOSettings = pIOSettings;
 }
 
-void AwdSettings::setupBlockSettings( FbxIOSettings *pIOS, BlockSettings * bs){
-    bs->set_wide_matrix(        AwdSettings::get_wide_matrix(pIOS) );
-    bs->set_wide_props(         AwdSettings::get_wide_props(pIOS) );
-    bs->set_wide_attributes(    AwdSettings::get_wide_attribs(pIOS) );
-    bs->set_wide_geom(          AwdSettings::get_wide_geoms(pIOS) );
-    bs->set_scale(              AwdSettings::get_scale(pIOS) );
+
+
+void Settings::setupBlockSettings( BlockSettings * bs ){
+    bs->set_wide_matrix(        get_wide_matrix() );
+    bs->set_wide_props(         get_wide_props() );
+    bs->set_wide_attributes(    get_wide_attribs() );
+    bs->set_wide_geom(          get_wide_geoms() );
+    bs->set_scale(              get_scale() );
 }
 
-void AwdSettings::FillFbxIOSettings(FbxIOSettings& pIOS ){
 
+void Settings::FillDefaultValues( FbxIOSettings *pIOS ){
 
-    // Here you can write your own FbxIOSettings and parse them.
-    FbxProperty FBXExtentionsSDKGroup = pIOS.GetProperty(AWD_OPTION_GROUP);
+    FbxProperty FBXExtentionsSDKGroup = pIOS->GetProperty(AWD_OPTION_GROUP);
     if( !FBXExtentionsSDKGroup.IsValid() ) return;
 
-    FbxProperty IOPluginGroup = pIOS.AddPropertyGroup(FBXExtentionsSDKGroup, PLUGIN_NAME, FbxStringDT, PLUGIN_NAME);
+    FbxProperty IOPluginGroup = pIOS->AddPropertyGroup(FBXExtentionsSDKGroup, PLUGIN_NAME, FbxStringDT, PLUGIN_NAME);
 
     if( IOPluginGroup.IsValid() )
     {
@@ -50,98 +34,144 @@ void AwdSettings::FillFbxIOSettings(FbxIOSettings& pIOS ){
         bool precision_geo      = false;
         bool precision_props    = false;
         bool precision_attr     = false;
-        float scale             = 1.0;
-//        AWD_compression comp    = UNCOMPRESSED;
-
         bool export_empty       = true;
         bool split_by_root      = false;
+        float scale             = 1.0;
 
-
-        pIOS.AddProperty(IOPluginGroup, WIDE_MATRIX ,       FbxBoolDT,  "Wide Matrix",  &precision_mtx );
-        pIOS.AddProperty(IOPluginGroup, WIDE_GEOMS  ,       FbxBoolDT,  "Wide Geoms",   &precision_geo );
-        pIOS.AddProperty(IOPluginGroup, WIDE_PROPS  ,       FbxBoolDT,  "Wide Props",   &precision_props );
-        pIOS.AddProperty(IOPluginGroup, WIDE_ATTIBS ,       FbxBoolDT,  "Wide Attribs", &precision_attr );
-        pIOS.AddProperty(IOPluginGroup, EXPORT_SCALE,       FbxFloatDT, "Scene Scale",  &scale );
-
-        pIOS.AddProperty(IOPluginGroup, EXPORT_EMPTY ,      FbxBoolDT,  "export empty containers", &export_empty );
-        pIOS.AddProperty(IOPluginGroup, SPLIT_BY_ROOT ,     FbxBoolDT,  "split by root", &split_by_root );
-
-        FbxProperty compression = pIOS.AddProperty(IOPluginGroup, AWD_COMPRESSION,    FbxEnumDT, "Compression",  AWD_COMPRESSION );
-
-        compression.AddEnumValue( "uncompressed" );
-        compression.AddEnumValue( "deflate" );
-        compression.AddEnumValue( "lzma" );
+        
+        if( ! wide_matrix_property( pIOS ).IsValid() ) {
+            pIOS->AddProperty(IOPluginGroup, WIDE_MATRIX ,       FbxBoolDT,  "Wide Matrix",  &precision_mtx );
+        }
+        if( ! wide_geoms_property( pIOS ).IsValid() ) {
+            pIOS->AddProperty(IOPluginGroup, WIDE_GEOMS  ,       FbxBoolDT,  "Wide Geoms",   &precision_geo );
+        }
+        if( ! wide_props_property( pIOS ).IsValid() ) {
+            pIOS->AddProperty(IOPluginGroup, WIDE_PROPS  ,       FbxBoolDT,  "Wide Props",   &precision_props );
+        }
+        if( ! wide_attribs_property( pIOS ).IsValid() ) {
+            pIOS->AddProperty(IOPluginGroup, WIDE_ATTIBS ,       FbxBoolDT,  "Wide Attribs", &precision_attr );
+        }
+        if( ! export_empty_property( pIOS ).IsValid() ) {
+            pIOS->AddProperty(IOPluginGroup, EXPORT_EMPTY ,      FbxBoolDT,  "export empty containers", &export_empty );
+        }
+        if( ! split_by_root_property( pIOS ).IsValid() ) {
+            pIOS->AddProperty(IOPluginGroup, SPLIT_BY_ROOT ,     FbxBoolDT,  "split by root", &split_by_root );
+        }
+        if( ! scale_property( pIOS ).IsValid() ) {
+            pIOS->AddProperty(IOPluginGroup, EXPORT_SCALE,       FbxFloatDT, "Scene Scale",  &scale );
+        }
+        if( ! compression_property( pIOS ).IsValid() ) {
+            FbxProperty compression = pIOS->AddProperty(IOPluginGroup, AWD_COMPRESSION,    FbxEnumDT, "Compression",  AWD_COMPRESSION );
+            compression.AddEnumValue( "uncompressed" );
+            compression.AddEnumValue( "deflate" );
+            compression.AddEnumValue( "lzma" );
+        }
+        
+        
 
     }
 
 }
 
 
-FbxProperty AwdSettings::getSettingsGroup(FbxIOSettings* pIOS){
-    FbxProperty group = pIOS->GetProperty( AWD_OPTION_GROUP "|" PLUGIN_NAME );
+FbxProperty Settings::getSettingsGroup(){
+    FbxProperty group = mIOSettings->GetProperty( AWD_OPTION_GROUP "|" PLUGIN_NAME );
     return group;
 }
 
-bool AwdSettings::get_wide_matrix(FbxIOSettings* pIOS){
-    return pIOS->GetBoolProp( AWD_OPTION_GROUP "|" PLUGIN_NAME "|" WIDE_MATRIX, false );
+bool Settings::get_wide_matrix(){
+    return mIOSettings->GetBoolProp( PROP_ID( WIDE_MATRIX ), false );
 }
 
-bool AwdSettings::get_wide_geoms(FbxIOSettings* pIOS){
-    return pIOS->GetBoolProp( AWD_OPTION_GROUP "|" PLUGIN_NAME "|" WIDE_GEOMS, false );
+bool Settings::get_wide_geoms(){
+    return mIOSettings->GetBoolProp( PROP_ID( WIDE_GEOMS ), false );
 }
 
-bool AwdSettings::get_wide_props(FbxIOSettings* pIOS){
-    return pIOS->GetBoolProp( AWD_OPTION_GROUP "|" PLUGIN_NAME "|" WIDE_PROPS, false );
+bool Settings::get_wide_props(){
+    return mIOSettings->GetBoolProp( PROP_ID( WIDE_PROPS ), false );
 }
 
-bool AwdSettings::get_wide_attribs(FbxIOSettings* pIOS){
-    return pIOS->GetBoolProp( AWD_OPTION_GROUP "|" PLUGIN_NAME "|" WIDE_ATTIBS, false );
+bool Settings::get_wide_attribs(){
+    return mIOSettings->GetBoolProp( PROP_ID( WIDE_ATTIBS ), false );
 }
 
-bool AwdSettings::get_export_empty(FbxIOSettings* pIOS){
-    return pIOS->GetBoolProp( AWD_OPTION_GROUP "|" PLUGIN_NAME "|" EXPORT_EMPTY, false );
+bool Settings::get_export_empty(){
+    return mIOSettings->GetBoolProp( PROP_ID( EXPORT_EMPTY ), false );
 }
 
-bool AwdSettings::get_split_by_root(FbxIOSettings* pIOS){
-    return pIOS->GetBoolProp( AWD_OPTION_GROUP "|" PLUGIN_NAME "|" SPLIT_BY_ROOT, false );
+bool Settings::get_split_by_root(){
+    return mIOSettings->GetBoolProp( PROP_ID( SPLIT_BY_ROOT ), false );
 }
 
-double AwdSettings::get_scale(FbxIOSettings* pIOS){
-    return pIOS->GetDoubleProp( AWD_OPTION_GROUP "|" PLUGIN_NAME "|" EXPORT_SCALE, 1.0 );
-}
-
-
-void AwdSettings::set_wide_matrix(FbxIOSettings* pIOS, bool value){
-    pIOS->SetBoolProp( AWD_OPTION_GROUP "|" PLUGIN_NAME "|" WIDE_MATRIX, value );
-}
-
-void AwdSettings::set_wide_geoms(FbxIOSettings* pIOS, bool value){
-    pIOS->SetBoolProp( AWD_OPTION_GROUP "|" PLUGIN_NAME "|" WIDE_GEOMS, value );
-}
-
-void AwdSettings::set_wide_props(FbxIOSettings* pIOS, bool value){
-    pIOS->SetBoolProp( AWD_OPTION_GROUP "|" PLUGIN_NAME "|" WIDE_PROPS, value );
-}
-
-void AwdSettings::set_wide_attribs(FbxIOSettings* pIOS, bool value){
-    pIOS->SetBoolProp( AWD_OPTION_GROUP "|" PLUGIN_NAME "|" WIDE_ATTIBS, value );
-}
-
-void AwdSettings::set_export_empty(FbxIOSettings* pIOS, bool value){
-    pIOS->SetBoolProp( AWD_OPTION_GROUP "|" PLUGIN_NAME "|" EXPORT_EMPTY, value );
-}
-
-void AwdSettings::set_split_by_root(FbxIOSettings* pIOS, bool value){
-    pIOS->SetBoolProp( AWD_OPTION_GROUP "|" PLUGIN_NAME "|" SPLIT_BY_ROOT, value );
-}
-
-void AwdSettings::set_scale(FbxIOSettings* pIOS, double value){
-    pIOS->SetDoubleProp( AWD_OPTION_GROUP "|" PLUGIN_NAME "|" EXPORT_SCALE, value );
+double Settings::get_scale(){
+    return mIOSettings->GetDoubleProp( PROP_ID( EXPORT_SCALE ), 1.0 );
 }
 
 
-AWD_compression AwdSettings::get_compression        (FbxIOSettings* pIOS){
-    FbxString str = pIOS->GetEnumProp( AWD_OPTION_GROUP "|" PLUGIN_NAME "|" AWD_COMPRESSION, "uncompressed");
+void Settings::set_wide_matrix( bool value){
+    mIOSettings->SetBoolProp( PROP_ID( WIDE_MATRIX ), value );
+}
+
+void Settings::set_wide_geoms( bool value){
+    mIOSettings->SetBoolProp( PROP_ID( WIDE_GEOMS ), value );
+}
+
+void Settings::set_wide_props( bool value){
+    mIOSettings->SetBoolProp( PROP_ID( WIDE_PROPS ), value );
+}
+
+void Settings::set_wide_attribs( bool value){
+    mIOSettings->SetBoolProp( PROP_ID( WIDE_ATTIBS ), value );
+}
+
+void Settings::set_export_empty( bool value){
+    mIOSettings->SetBoolProp( PROP_ID( EXPORT_EMPTY ), value );
+}
+
+void Settings::set_split_by_root( bool value){
+    mIOSettings->SetBoolProp( PROP_ID( SPLIT_BY_ROOT ), value );
+}
+
+void Settings::set_scale( double value){
+    mIOSettings->SetDoubleProp( PROP_ID( EXPORT_SCALE ), value );
+}
+
+
+FbxProperty Settings::wide_matrix_property(FbxIOSettings* pIOS) {
+    return pIOS->GetProperty( PROP_ID( WIDE_MATRIX ) );
+}
+
+FbxProperty Settings::wide_geoms_property(FbxIOSettings* pIOS) {
+    return pIOS->GetProperty( PROP_ID( WIDE_GEOMS ) );
+}
+
+FbxProperty Settings::wide_props_property(FbxIOSettings* pIOS) {
+    return pIOS->GetProperty( PROP_ID( WIDE_PROPS ) );
+}
+
+FbxProperty Settings::wide_attribs_property(FbxIOSettings* pIOS) {
+    return pIOS->GetProperty( PROP_ID( WIDE_ATTIBS ) );
+}
+
+FbxProperty Settings::export_empty_property(FbxIOSettings* pIOS) {
+    return pIOS->GetProperty( PROP_ID( EXPORT_EMPTY ) );
+}
+
+FbxProperty Settings::split_by_root_property(FbxIOSettings* pIOS) {
+    return pIOS->GetProperty( PROP_ID( SPLIT_BY_ROOT ) );
+}
+
+FbxProperty Settings::scale_property(FbxIOSettings* pIOS) {
+    return pIOS->GetProperty( PROP_ID( EXPORT_SCALE ) );
+}
+
+FbxProperty Settings::compression_property(FbxIOSettings* pIOS) {
+    return pIOS->GetProperty( PROP_ID( AWD_COMPRESSION ) );
+}
+
+
+AWD_compression Settings::get_compression(){
+    FbxString str = mIOSettings->GetEnumProp( PROP_ID( AWD_COMPRESSION ), "uncompressed");
     if( str == "uncompressed" )
         return UNCOMPRESSED;
     if( str == "deflate" )
@@ -152,7 +182,7 @@ AWD_compression AwdSettings::get_compression        (FbxIOSettings* pIOS){
     return UNCOMPRESSED;
 }
 
-void AwdSettings::set_compression        (FbxIOSettings* pIOS, AWD_compression value){
+void Settings::set_compression        ( AWD_compression value){
     FbxString str;
     if( value == UNCOMPRESSED )
         str = "uncompressed";
@@ -161,6 +191,6 @@ void AwdSettings::set_compression        (FbxIOSettings* pIOS, AWD_compression v
     if( value == LZMA )
         str = "lzma";
 
-    pIOS->SetEnumProp( AWD_OPTION_GROUP "|" PLUGIN_NAME "|" AWD_COMPRESSION, str );
+    mIOSettings->SetEnumProp( PROP_ID( AWD_COMPRESSION ), str );
 }
 
