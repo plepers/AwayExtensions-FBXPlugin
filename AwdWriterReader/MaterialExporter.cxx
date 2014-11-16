@@ -22,8 +22,30 @@ awd_color MaterialExporter::colorFromChannel( ColorChannel *channel ){
 }
 
 
+
+void setXformFromTexture( FbxTexture *tex, awd_float64 *mtx )
+{
+    
+    double angle = tex->GetRotationW() / 180.0 * 3.1415926535;
+    double cosA = cos( angle );
+    double sinA = sin( angle );
+    
+    // assume order a,b,c,d,tx,ty
+    mtx[0] = cosA  * tex->GetScaleU();
+    mtx[1] = sinA  * tex->GetScaleU();
+    mtx[2] = -sinA * tex->GetScaleV();
+    mtx[3] = cosA  * tex->GetScaleV();
+    mtx[4] = tex->GetTranslationU();
+    mtx[5] = tex->GetTranslationV();
+    
+}
+
+
+
+
 // Get specific property value and connected texture if any.
 // Value = Property value * Factor property value (if no factor property, multiply by 1).
+//
 void MaterialExporter::getMaterialProperty(const FbxSurfaceMaterial * pMaterial,
                                const char * pPropertyName,
                                const char * pFactorPropertyName,
@@ -128,6 +150,10 @@ void MaterialExporter::doExport(FbxObject *pObj )
     //
     // export textures
     //
+    bool lDiffuseRepeat = true;
+    bool lDiffusePremult = false;
+    double *uvmtxData = (double *)malloc(6*sizeof(double));
+    
     if( mDiffuse.mTexture || mAmbient.mTexture || mSpecular.mTexture )
     {
         FBXSDK_printf("  material has textures");
@@ -138,6 +164,13 @@ void MaterialExporter::doExport(FbxObject *pObj )
         {
             texExporter->doExport( mDiffuse.mTexture );
             awdMat->set_texture( (AWDBitmapTexture *)mContext->GetBlocksMap()->Get(mDiffuse.mTexture) );
+
+            lDiffuseRepeat = mDiffuse.mTexture->WrapModeU.Get() == FbxFileTexture::eRepeat && mDiffuse.mTexture->WrapModeV.Get() == FbxFileTexture::eRepeat;
+            lDiffusePremult = mDiffuse.mTexture->PremultiplyAlpha.Get();
+            
+            
+            setXformFromTexture( mDiffuse.mTexture, uvmtxData );
+            
         }
         
         if( mAmbient.mTexture )
@@ -156,6 +189,12 @@ void MaterialExporter::doExport(FbxObject *pObj )
         
         
     }
+    // todo ? set only if non identity?
+    //
+    awdMat->set_uv_transform_mtx( uvmtxData );
+    
+    awdMat->set_premultiplied( lDiffusePremult );
+    awdMat->set_repeat( lDiffuseRepeat );
     
     mContext->add_material(awdMat, pObj );
     

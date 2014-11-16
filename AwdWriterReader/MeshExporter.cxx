@@ -39,7 +39,7 @@ void MeshExporter::doExport(FbxObject* pObj){
         gExporter->doExport( lMesh );
         gExporter->release();
         
-        // call GetMesh after geom export since
+        // call GetMesh again after geom export since
         // geom exporter can replace the actual Mesh attribute
         // (Triangulation)
         lMesh = pNode->GetMesh();
@@ -52,27 +52,15 @@ void MeshExporter::doExport(FbxObject* pObj){
 
     }
     
-    
-
-    
-    
-    //
     // export MeshInstance
     //
-    
-    
     const char *name = pNode->GetName();
     AWDMeshInst* awdMesh = new AWDMeshInst( name, static_cast<unsigned short>(strlen(name)), geomBlock );
     
     CopyNodeTransform( pNode, awdMesh );
     
     
-    mContext->add_mesh_data( awdMesh, pNode );
     
-    
-    
-    
-    //
     // retreive materials
     // 
     // materials should have already been exported
@@ -89,10 +77,11 @@ void MeshExporter::doExport(FbxObject* pObj){
         awdMesh->add_material( (AWDMaterial*)matBlock );
     }
     
-    
-    
     awdMesh->set_defaultMat(materialList->getByIndex(0));
     awdMesh->set_pre_materials( materialList );
     
+    // add to awd
+    //
+    mContext->add_mesh_data( awdMesh, pNode );
     
 }

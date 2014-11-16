@@ -43,6 +43,11 @@ void TextureExporter::doExport(FbxObject* pObj )
                         
     }
     
+    // todo ? Several materials can hold different instances
+    // of FbxFileTexture using the same file, maybe we should cache
+    // textures using absolute file path as unique id, so we
+    // don't export the same texture twice
+    //
     mContext->add_texture( awdTex, pObj );
     
     
