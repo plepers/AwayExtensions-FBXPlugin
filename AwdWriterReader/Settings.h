@@ -45,6 +45,7 @@ public:
     void set_wide_attribs   ( bool );
     void set_export_empty   ( bool );
     void set_split_by_root  ( bool );
+    void set_embed_textures ( bool );
     void set_scale          ( double );
     void set_compression    ( AWD_compression );
     
@@ -54,6 +55,7 @@ public:
     bool get_wide_attribs   ();
     bool get_export_empty   ();
     bool get_split_by_root  ();
+    bool get_embed_textures ();
     double get_scale        ();
     AWD_compression get_compression();
     

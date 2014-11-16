@@ -17,11 +17,14 @@
 //The writer provide you the ability to write out node hierarchy to a custom file format.
 
 
+
+class ExporterProvider;
+
 class NodeExporter
 {
 public:
     
-    void setup( ExportContext *context );
+    void setup( ExportContext *context, ExporterProvider *ep );
     void release();
     
     virtual bool isHandleObject( FbxObject* ) = 0;
@@ -30,14 +33,64 @@ public:
     
 protected:
     
-    ExportContext   *mContext;
+    ExportContext       *mContext;
+    ExporterProvider    *mExporters;
 };
+
 
 //
 // common utilities convert FBX data to AWD data
 //
 //
 void CopyNodeTransform( FbxNode* pNode, AWDSceneBlock* sceneBlock );
+
+
+//
+// ExporterProvider
+// Manage a list of node exporter
+// retreive the correct NodeExporter for
+// each nodes
+//
+
+class ExporterLinkedItem
+{
+public:
+    ExporterLinkedItem( NodeExporter* exporter );
+    ~ExporterLinkedItem();
+    
+    ExporterLinkedItem* next();
+    void setNext( ExporterLinkedItem*  );
+    
+    NodeExporter* getExporter();
+    
+    
+private:
+    
+    NodeExporter* mExporter;
+    ExporterLinkedItem* mNext;
+    
+};
+
+
+class ExporterProvider
+{
+public:
+    ExporterProvider( NodeExporter* pDefault );
+    ~ExporterProvider();
+    
+    void addExporter( NodeExporter* );
+    
+    NodeExporter* findExporter( FbxObject* pObj );
+    NodeExporter* getDefaultExporter();
+    
+private:
+    ExporterLinkedItem 	*mHead;
+    ExporterLinkedItem 	*mTail;
+    NodeExporter		*mDefault;
+};
+
+
+
 
 
 #endif /* defined(__FbxAwdExporter__NodeExporter__) */

@@ -15,10 +15,9 @@ protected:
     virtual bool SpecificInitialize()
     {
         
-        FBXSDK_printf("AWD SpecificInitialize.\n");
-        
         int FirstPluginID, RegistredCount;
-        GetData().mSDKManager->GetIOPluginRegistry()->RegisterReader(CreateAwdReader, GetAwdReaderInfo, FirstPluginID, RegistredCount, FillAwdReaderIOSettings);
+        // no reader for now
+        //GetData().mSDKManager->GetIOPluginRegistry()->RegisterReader(CreateAwdReader, GetAwdReaderInfo, FirstPluginID, RegistredCount, FillAwdReaderIOSettings);
         GetData().mSDKManager->GetIOPluginRegistry()->RegisterWriter(CreateAwdWriter, GetAwdWriterInfo, FirstPluginID, RegistredCount, FillAwdWriterIOSettings);
         return true;
     }

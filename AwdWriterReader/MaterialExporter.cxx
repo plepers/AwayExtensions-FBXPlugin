@@ -7,6 +7,7 @@
 //
 
 #include "MaterialExporter.h"
+#include "TextureExporter.h"
 
 unsigned char f2b( float f ){
     f = fmax(0.0, fmin(1.0, f));
@@ -46,13 +47,12 @@ void MaterialExporter::getMaterialProperty(const FbxSurfaceMaterial * pMaterial,
     if (lProperty.IsValid())
     {
         const int lTextureCount = lProperty.GetSrcObjectCount<FbxFileTexture>();
+        
+        FBXSDK_printf("   Material texture count : %s -- %i\n", pPropertyName, lTextureCount );
         if (lTextureCount)
         {
-            const FbxFileTexture* lTexture = lProperty.GetSrcObject<FbxFileTexture>();
-            if (lTexture && lTexture->GetUserDataPtr())
-            {
-                pChannel->mTexture = lTexture;
-            }
+            FbxFileTexture* lTexture = lProperty.GetSrcObject<FbxFileTexture>();
+            pChannel->mTexture = lTexture;
         }
     }
 }
@@ -102,6 +102,8 @@ void MaterialExporter::doExport(FbxObject *pObj )
         mShinness = lShininessProperty.Get<FbxDouble>();
     }
     
+
+    
     if( mDiffuse.mTexture )
     {
         awdMat->set_type( AWD_MATTYPE_TEXTURE );
@@ -121,6 +123,39 @@ void MaterialExporter::doExport(FbxObject *pObj )
     awdMat->set_glossStrength( (awd_uint16) mShinness );
 
     awdMat->set_is_faceted( false );
+    
+    
+    //
+    // export textures
+    //
+    if( mDiffuse.mTexture || mAmbient.mTexture || mSpecular.mTexture )
+    {
+        FBXSDK_printf("  material has textures");
+        TextureExporter *texExporter = new TextureExporter();
+        texExporter->setup( mContext, mExporters );
+        
+        if( mDiffuse.mTexture )
+        {
+            texExporter->doExport( mDiffuse.mTexture );
+            awdMat->set_texture( (AWDBitmapTexture *)mContext->GetBlocksMap()->Get(mDiffuse.mTexture) );
+        }
+        
+        if( mAmbient.mTexture )
+        {
+            texExporter->doExport( mAmbient.mTexture );
+            awdMat->set_ambientTexture( (AWDBitmapTexture *)mContext->GetBlocksMap()->Get(mAmbient.mTexture) );
+        }
+        
+        if( mSpecular.mTexture )
+        {
+            texExporter->doExport( mSpecular.mTexture );
+            awdMat->set_specTexture( (AWDBitmapTexture *)mContext->GetBlocksMap()->Get(mSpecular.mTexture) );
+        }
+        
+        texExporter->release();
+        
+        
+    }
     
     mContext->add_material(awdMat, pObj );
     

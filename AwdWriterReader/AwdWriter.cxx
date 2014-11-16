@@ -125,15 +125,9 @@ bool AwdWriter::PreprocessScene(FbxScene& /*pScene*/)
 {
     FbxIOSettings* s = GetIOSettings();
     
-//    FbxString dir( "/Users/plepers/work/workspaces/c/totos.xml" );
-//    FbxString name( "name.xml" );
-//    FbxString props( EXP_FBX_EXT_SDK_GRP "|" PLUGIN_NAME "|Test" );
-//    FBXSDK_printf("%s\n", props.Buffer() );
-//    s->WriteXMLFile( dir );
-    
     mExporters = CreateExporterProvider();
     mContext = new ExportContext( s, mManager );
-    FBXSDK_printf("I'm in pre-process\n");
+    
     return true;
 }
 
@@ -148,7 +142,6 @@ bool AwdWriter::PostprocessScene(FbxScene& /*pScene*/)
     delete mContext;
     delete mExporters;
     
-    FBXSDK_printf("I'm in post process\n");
     return true;
 }
 
@@ -220,7 +213,7 @@ bool AwdWriter::ExportNode(FbxNode* pNode, bool force )
     }
     
     if( exporter ){
-        exporter->setup( mContext );
+        exporter->setup( mContext, mExporters );
         exporter->doExport( pNode );
         exporter->release();
         exported = true;
@@ -231,99 +224,5 @@ bool AwdWriter::ExportNode(FbxNode* pNode, bool force )
     
 }
 
-
-
-
-// ================
-// ExporterProvider
-
-
-ExporterLinkedItem::ExporterLinkedItem(NodeExporter *exporter )
-{
-    mExporter = exporter;
-    mNext = NULL;
-}
-
-ExporterLinkedItem::~ExporterLinkedItem()
-{
-    mExporter = NULL;
-    mNext = NULL;
-}
-
-
-ExporterLinkedItem* ExporterLinkedItem::next()
-{
-    return mNext;
-}
-
-void ExporterLinkedItem::setNext( ExporterLinkedItem* item )
-{
-    if( mNext ) {
-        item->setNext( mNext );
-    }
-    mNext = item;
-}
-
-NodeExporter* ExporterLinkedItem::getExporter()
-{
-    return mExporter;
-}
-
-
-
-
-
-
-ExporterProvider::ExporterProvider( NodeExporter* pDefault )
-{
-    mDefault = pDefault;
-    mHead = NULL;
-    mTail = NULL;
-}
-
-ExporterProvider::~ExporterProvider( )
-{
-    ExporterLinkedItem *cur = mHead;
-    while (cur) {
-        ExporterLinkedItem *next = cur->next();
-        delete cur;
-        cur = next;
-    }
-    mHead = mTail = NULL;
-}
-
-void ExporterProvider::addExporter(NodeExporter *exporter)
-{
-    ExporterLinkedItem *item = new ExporterLinkedItem( exporter );
-    if( mTail ) {
-        mTail->setNext(item);
-    } else {
-        mHead = mTail = item;
-    }
-}
-
-NodeExporter* ExporterProvider::findExporter( FbxObject* pObj )
-{
-    ExporterLinkedItem *item = mHead;
-    
-    while( item ) {
-        
-        if( item->getExporter()->isHandleObject( pObj ) ){
-            return item->getExporter();
-        }
-        
-        item = item->next();
-    }
-    
-    // no suitable exporter found
-    return NULL;
-}
-
-
-
-NodeExporter* ExporterProvider::getDefaultExporter()
-{
-    return mDefault;
-}
 
 

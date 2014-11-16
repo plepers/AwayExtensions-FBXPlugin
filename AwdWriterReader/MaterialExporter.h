@@ -28,7 +28,7 @@ private:
             mColor[2] = 0.0f;
             mColor[3] = 1.0f;
         }
-        const FbxTexture *mTexture;
+        FbxTexture *mTexture;
         float factor;
         float mColor[4];
     };

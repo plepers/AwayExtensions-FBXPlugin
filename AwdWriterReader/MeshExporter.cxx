@@ -35,10 +35,13 @@ void MeshExporter::doExport(FbxObject* pObj){
     
     if( lMesh ){
         GeomExporter* gExporter = new GeomExporter();
-        gExporter->setup( mContext );
+        gExporter->setup( mContext, mExporters );
         gExporter->doExport( lMesh );
         gExporter->release();
         
+        // call GetMesh after geom export since
+        // geom exporter can replace the actual Mesh attribute
+        // (Triangulation)
         lMesh = pNode->GetMesh();
         
         geomBlock = mContext->GetBlocksMap()->Get( lMesh );

@@ -35,6 +35,9 @@ public:
     inline FbxManager* GetFbxManager() {
         return mManager;
     }
+    inline Settings* GetSettings() {
+        return mSettings;
+    }
     
     
     

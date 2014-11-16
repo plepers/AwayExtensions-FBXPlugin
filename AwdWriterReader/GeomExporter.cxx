@@ -517,7 +517,7 @@ void GeomExporter::doExport(FbxObject* pObject){
     // so we export them here.
     
     MaterialExporter *matExporter = new MaterialExporter();
-    matExporter->setup( mContext );
+    matExporter->setup( mContext, mExporters );
     
     AWDBlockList *matList = new AWDBlockList();
     

@@ -20,52 +20,6 @@
 
 
 
-//
-// ExporterProvider
-// Manage a list of node exporter
-// retreive the correct NodeExporter for
-// each nodes
-//
-
-class ExporterLinkedItem
-{
-public:
-    ExporterLinkedItem( NodeExporter* exporter );
-    ~ExporterLinkedItem();
-    
-    ExporterLinkedItem* next();
-    void setNext( ExporterLinkedItem*  );
-    
-    NodeExporter* getExporter();
-    
-    
-private:
-    
-    NodeExporter* mExporter;
-    ExporterLinkedItem* mNext;
-    
-};
-
-
-class ExporterProvider
-{
-public:
-    ExporterProvider( NodeExporter* pDefault );
-    ~ExporterProvider();
-    
-    void addExporter( NodeExporter* );
-    
-    NodeExporter* findExporter( FbxObject* pObj );
-    NodeExporter* getDefaultExporter();
-    
-private:
-    ExporterLinkedItem 	*mHead;
-    ExporterLinkedItem 	*mTail;
-    NodeExporter		*mDefault;
-};
-
-
-
 //This class is a custom writer.
 //The writer provide you the ability to write out node hierarchy to a custom file format.
 class AwdWriter : public FbxWriter
