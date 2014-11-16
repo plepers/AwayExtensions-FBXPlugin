@@ -161,7 +161,8 @@ void CopyNodeTransform( FbxNode* pNode, AWDSceneBlock* sceneBlock )
     static double rawMatrix[12];
     
     // did this evaluate pivot
-    lLocal = CalculateGlobalTransform( pNode );//pNode->EvaluateLocalTransform();
+    //lLocal = CalculateGlobalTransform( pNode );//
+    lLocal = pNode->EvaluateLocalTransform();
     
     
     rawMatrix[0] =  lLocal.GetRow(0).mData[0];
@@ -215,7 +216,7 @@ void CopyNodeTransform( FbxNode* pNode, AWDSceneBlock* sceneBlock )
     sceneBlock->set_transform( rawMatrix );
     
     // short
-//    sceneBlock->set_transform( pNode->EvaluateLocalTransform() );
+    //sceneBlock->set_transform( pNode->EvaluateLocalTransform() );
 }
 
 

@@ -32,7 +32,8 @@
 
 // #define SAMPLE_FILENAME "/Users/plepers/work/workspaces/c/fbx_awd_converter/sample/box_blender.fbx"
 //#define SAMPLE_FILENAME "/Users/plepers/work/libs/metaioSDK/_Unity/Example/Assets/TutorialInstantTracking/tiger/tiger.fbx"
-#define SAMPLE_FILENAME "/Applications/Autodesk/FBX\ SDK/2015.1/samples/UVSample/Sadface.FBX"
+//#define SAMPLE_FILENAME "/Applications/Autodesk/FBX\ SDK/2015.1/samples/UVSample/Sadface.FBX"
+#define SAMPLE_FILENAME "/Users/plepers/tmp/awd.fbx"
 
 
 const char* lFileTypes[] =

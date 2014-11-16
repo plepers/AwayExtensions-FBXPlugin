@@ -59,6 +59,9 @@ void MeshExporter::doExport(FbxObject* pObj){
     
     CopyNodeTransform( pNode, awdMesh );
     
+    AWDBlock *parent = mContext->GetBlocksMap()->Get( pNode->GetParent() );
+    awdMesh->set_parent( )
+    
     
     
     // retreive materials

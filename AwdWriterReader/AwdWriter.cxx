@@ -121,8 +121,11 @@ ExporterProvider* AwdWriter::CreateExporterProvider(){
 
 
 // Pre-process the scene before write it out
-bool AwdWriter::PreprocessScene(FbxScene& /*pScene*/)
+bool AwdWriter::PreprocessScene( FbxScene& pScene )
 {
+    FbxAxisSystem::MayaYUp.ConvertScene( &pScene );
+    
+    
     FbxIOSettings* s = GetIOSettings();
     
     mExporters = CreateExporterProvider();
