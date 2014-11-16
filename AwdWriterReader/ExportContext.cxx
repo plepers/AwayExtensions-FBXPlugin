@@ -83,7 +83,8 @@ void ExportContext::add_uv_anim(AWDUVAnimation * block, FbxObject *pObj ){
     mBlocksMap->Set( pObj, block );
 }
 void ExportContext::add_scene_block(AWDSceneBlock * block, FbxObject *pObj ){
-    mAwd->add_scene_block( block );
+    if( block->get_parent() == NULL )
+        mAwd->add_scene_block( block );
     mBlocksMap->Set( pObj, block );
 }
 void ExportContext::add_light_picker_block(AWDLightPicker * block, FbxObject *pObj ){

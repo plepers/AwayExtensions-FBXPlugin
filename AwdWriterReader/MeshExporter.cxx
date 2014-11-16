@@ -59,8 +59,9 @@ void MeshExporter::doExport(FbxObject* pObj){
     
     CopyNodeTransform( pNode, awdMesh );
     
-    AWDBlock *parent = mContext->GetBlocksMap()->Get( pNode->GetParent() );
-    awdMesh->set_parent( )
+    AWDSceneBlock *parent = (AWDSceneBlock*) mContext->GetBlocksMap()->Get( pNode->GetParent() );
+    FBXSDK_printf( "  parent type %i \n", parent->get_type() );
+    awdMesh->set_parent( parent );
     
     
     
@@ -85,6 +86,6 @@ void MeshExporter::doExport(FbxObject* pObj){
     
     // add to awd
     //
-    mContext->add_mesh_data( awdMesh, pNode );
+    mContext->add_scene_block( awdMesh, pNode );
     
 }

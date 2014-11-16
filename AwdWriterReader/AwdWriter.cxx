@@ -168,25 +168,22 @@ bool AwdWriter::ExportNodeAndChildren(FbxNode* pNode)
 {
     bool exported = false;
     
+    ExportNode( pNode, true );
+    
     FbxNode* lChildNode;
     
     int lNodeChildCount = pNode->GetChildCount ();
     while (lNodeChildCount > 0)
     {
         lNodeChildCount--;
-        lChildNode = pNode->GetChild (lNodeChildCount);
+        lChildNode = pNode->GetChild( lNodeChildCount );
         
         if( ExportNodeAndChildren(lChildNode) ) {
             exported = true;
         }
     }
     
-    // force export of this node if exported is true
-    // since it must be parent of exported children
-    ExportNode( pNode, exported );
-    
     return exported;
-
 }
 
 
@@ -196,7 +193,7 @@ bool AwdWriter::ExportNodeAndChildren(FbxNode* pNode)
  * if `force` is false and no exporter is found
  * skip the node
  */
-bool AwdWriter::ExportNode(FbxNode* pNode, bool force )
+bool AwdWriter::ExportNode( FbxNode* pNode, bool force )
 {
     
     FBXSDK_printf("ExportNode %s\n", pNode->GetName() );

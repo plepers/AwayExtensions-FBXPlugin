@@ -592,7 +592,7 @@ void GeomExporter::doExport(FbxObject* pObject){
         }
     }
     
-    mContext->GetBlocksMap()->Set( pMesh, geom );
+    mContext->add_mesh_data( geom, pMesh );
     
     
     FBXSDK_printf("Geometry exported : %s\n", pObject->GetName() );
