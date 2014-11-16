@@ -8,6 +8,7 @@
 
 #include "MaterialExporter.h"
 #include "TextureExporter.h"
+#include "utils.h"
 
 unsigned char f2b( float f ){
     f = fmax(0.0, fmin(1.0, f));
@@ -189,9 +190,11 @@ void MaterialExporter::doExport(FbxObject *pObj )
         
         
     }
-    // todo ? set only if non identity?
-    //
-    awdMat->set_uv_transform_mtx( uvmtxData );
+
+    if( ! AwdUtils::isMatrix2dIdentity(uvmtxData) )
+    {
+        awdMat->set_uv_transform_mtx( uvmtxData );
+    }
     
     awdMat->set_premultiplied( lDiffusePremult );
     awdMat->set_repeat( lDiffuseRepeat );

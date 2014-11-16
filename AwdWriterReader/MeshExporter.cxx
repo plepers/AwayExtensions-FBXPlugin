@@ -8,6 +8,7 @@
 
 #include "MeshExporter.h"
 #include "GeomExporter.h"
+#include "utils.h"
 
 
 
@@ -25,15 +26,14 @@ void MeshExporter::doExport(FbxObject* pObj){
     FbxNode *pNode = (FbxNode*) pObj;
     
     
-    //
     // export Geometry
-    //
     
     AWDBlock *geomBlock = NULL;
     
     FbxMesh *lMesh = pNode->GetMesh();
     
-    if( lMesh ){
+    if( lMesh )
+    {
         GeomExporter* gExporter = new GeomExporter();
         gExporter->setup( mContext, mExporters );
         gExporter->doExport( lMesh );
@@ -46,18 +46,20 @@ void MeshExporter::doExport(FbxObject* pObj){
         
         geomBlock = mContext->GetBlocksMap()->Get( lMesh );
         
-        if( geomBlock == NULL ){
+        if( geomBlock == NULL )
+        {
             FBXSDK_printf( "WARN : geom not found/exported, mesh exported without geometry! \n" );
         }
 
     }
+    
     
     // export MeshInstance
     //
     const char *name = pNode->GetName();
     AWDMeshInst* awdMesh = new AWDMeshInst( name, static_cast<unsigned short>(strlen(name)), geomBlock );
     
-    CopyNodeTransform( pNode, awdMesh );
+    AwdUtils::CopyNodeTransform( pNode, awdMesh );
     
     AWDSceneBlock *parent = (AWDSceneBlock*) mContext->GetBlocksMap()->Get( pNode->GetParent() );
     awdMesh->set_parent( parent );

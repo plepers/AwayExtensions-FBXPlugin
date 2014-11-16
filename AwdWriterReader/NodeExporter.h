@@ -38,12 +38,6 @@ protected:
 };
 
 
-//
-// common utilities convert FBX data to AWD data
-//
-//
-void CopyNodeTransform( FbxNode* pNode, AWDSceneBlock* sceneBlock );
-
 
 //
 // ExporterProvider

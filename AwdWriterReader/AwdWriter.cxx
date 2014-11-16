@@ -125,8 +125,8 @@ bool AwdWriter::PreprocessScene( FbxScene& pScene )
 {
 //    FbxAxisSystem *axis = new FbxAxisSystem( FbxAxisSystem::eYAxis, FbxAxisSystem::eParityOdd, FbxAxisSystem::eLeftHanded );
 //    axis->ConvertScene( &pScene );
-//    FbxAxisSystem::MayaYUp.ConvertScene( &pScene );
-    FbxAxisSystem::MayaZUp.ConvertScene( &pScene );
+
+    FbxAxisSystem::MayaYUp.ConvertScene( &pScene );
     
     
     FbxIOSettings* s = GetIOSettings();
