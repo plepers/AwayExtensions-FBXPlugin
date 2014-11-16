@@ -123,7 +123,10 @@ ExporterProvider* AwdWriter::CreateExporterProvider(){
 // Pre-process the scene before write it out
 bool AwdWriter::PreprocessScene( FbxScene& pScene )
 {
-    FbxAxisSystem::MayaYUp.ConvertScene( &pScene );
+//    FbxAxisSystem *axis = new FbxAxisSystem( FbxAxisSystem::eYAxis, FbxAxisSystem::eParityOdd, FbxAxisSystem::eLeftHanded );
+//    axis->ConvertScene( &pScene );
+//    FbxAxisSystem::MayaYUp.ConvertScene( &pScene );
+    FbxAxisSystem::MayaZUp.ConvertScene( &pScene );
     
     
     FbxIOSettings* s = GetIOSettings();
@@ -156,7 +159,7 @@ void AwdWriter::ExportScene(FbxScene* pScene )
     
     // export global scene settings here
     
-    ExportNodeAndChildren( pScene->GetRootNode() );
+    ExportChildren( pScene->GetRootNode() );
     
 }
 
@@ -166,9 +169,15 @@ void AwdWriter::ExportScene(FbxScene* pScene )
 //
 bool AwdWriter::ExportNodeAndChildren(FbxNode* pNode)
 {
-    bool exported = false;
-    
     ExportNode( pNode, true );
+    return ExportChildren(pNode);
+}
+// export node descendants then node
+// return true if one or more node has been exported
+//
+bool AwdWriter::ExportChildren(FbxNode* pNode)
+{
+    bool exported = false;
     
     FbxNode* lChildNode;
     

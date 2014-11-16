@@ -41,6 +41,7 @@ public:
     virtual void ExportScene(FbxScene* pScene);
     
     virtual bool ExportNodeAndChildren(FbxNode* pNode);
+    virtual bool ExportChildren(FbxNode* pNode);
     virtual bool ExportNode(FbxNode* pNode, bool force=false );
 
 private:
