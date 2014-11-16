@@ -38,6 +38,7 @@ private:
         awd_float64 	*vertices;
         awd_float64		*normals;
         awd_float64		*uvs;
+        awd_float64		*uvs2;
     };
     
     struct SubMesh
@@ -54,6 +55,7 @@ private:
     
     bool mHasNormal;
     bool mHasUV;
+    bool mHasUV2;
     bool mAllByControlPoint;
 };
 

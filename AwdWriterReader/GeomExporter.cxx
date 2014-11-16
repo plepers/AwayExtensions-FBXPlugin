@@ -6,7 +6,7 @@
 //
 //
 
-// TODO : add secondary uvs, tangant and binormal
+// TODO : test secondary uvs, add tangant and binormal
 // TODO : add skinning support
 
 
@@ -141,8 +141,9 @@ void GeomExporter::doExport(FbxObject* pObject){
     // Here, all submeshes share the same VBOs, we will split them later
     // after a "collapsing" pass
     
-    mHasNormal = pMesh->GetElementNormalCount() > 0;
-    mHasUV = pMesh->GetElementUVCount() > 0;
+    mHasNormal  = pMesh->GetElementNormalCount() > 0;
+    mHasUV      = pMesh->GetElementUVCount() > 0;
+    mHasUV2     = pMesh->GetElementUVCount() > 1;
     
     FbxGeometryElement::EMappingMode lNormalMappingMode = FbxGeometryElement::eNone;
     FbxGeometryElement::EMappingMode lUVMappingMode = FbxGeometryElement::eNone;
@@ -171,6 +172,18 @@ void GeomExporter::doExport(FbxObject* pObject){
             mAllByControlPoint = false;
         }
     }
+    if (mHasUV2)
+    {
+        lUVMappingMode = pMesh->GetElementUV(1)->GetMappingMode();
+        if (lUVMappingMode == FbxGeometryElement::eNone)
+        {
+            mHasUV2 = false;
+        }
+        if (mHasUV2 && lUVMappingMode != FbxGeometryElement::eByControlPoint)
+        {
+            mAllByControlPoint = false;
+        }
+    }
     
     // Allocate the array memory, by control point or by polygon vertex.
     int lPolygonVertexCount = pMesh->GetControlPointsCount();
@@ -187,14 +200,24 @@ void GeomExporter::doExport(FbxObject* pObject){
         lNormals = new awd_float64[lPolygonVertexCount * 3];
     }
     
-    awd_float64 * lUVs = NULL;
+    
     FbxStringList lUVNames;
     pMesh->GetUVSetNames(lUVNames);
+    
+    awd_float64 * lUVs = NULL;
     const char * lUVName = NULL;
     if (mHasUV && lUVNames.GetCount())
     {
         lUVs = new awd_float64[lPolygonVertexCount * 2];
         lUVName = lUVNames[0];
+    }
+
+    awd_float64 * lUV2s = NULL;
+    const char * lUV2Name = NULL;
+    if (mHasUV && lUVNames.GetCount() > 1)
+    {
+        lUV2s = new awd_float64[lPolygonVertexCount * 2];
+        lUV2Name = lUVNames[1];
     }
 
 
@@ -208,6 +231,7 @@ void GeomExporter::doExport(FbxObject* pObject){
     {
         const FbxGeometryElementNormal * lNormalElement = NULL;
         const FbxGeometryElementUV * lUVElement = NULL;
+        const FbxGeometryElementUV * lUV2Element = NULL;
         if (mHasNormal)
         {
             lNormalElement = pMesh->GetElementNormal(0);
@@ -216,6 +240,11 @@ void GeomExporter::doExport(FbxObject* pObject){
         {
             lUVElement = pMesh->GetElementUV(0);
         }
+        if (mHasUV2)
+        {
+            lUV2Element = pMesh->GetElementUV(1);
+        }
+        
         for (int lIndex = 0; lIndex < lPolygonVertexCount; ++lIndex)
         {
             // Save the vertex position.
@@ -249,6 +278,17 @@ void GeomExporter::doExport(FbxObject* pObject){
                 lCurrentUV = lUVElement->GetDirectArray().GetAt(lUVIndex);
                 lUVs[lIndex * 2 + 0] = lCurrentUV[0];
                 lUVs[lIndex * 2 + 1] = lCurrentUV[1];
+            }
+            if (mHasUV2)
+            {
+                int lUVIndex = lIndex;
+                if (lUV2Element->GetReferenceMode() == FbxLayerElement::eIndexToDirect)
+                {
+                    lUVIndex = lUV2Element->GetIndexArray().GetAt(lIndex);
+                }
+                lCurrentUV = lUV2Element->GetDirectArray().GetAt(lUVIndex);
+                lUV2s[lIndex * 2 + 0] = lCurrentUV[0];
+                lUV2s[lIndex * 2 + 1] = lCurrentUV[1];
             }
         }
         
@@ -302,6 +342,13 @@ void GeomExporter::doExport(FbxObject* pObject){
                     lUVs[lVertexCount * 2 + 0] = lCurrentUV[0];
                     lUVs[lVertexCount * 2 + 1] = lCurrentUV[1];
                 }
+                if (mHasUV2)
+                {
+                    bool lUnmappedUV;
+                    pMesh->GetPolygonVertexUV(lPolygonIndex, lVerticeIndex, lUV2Name, lCurrentUV, lUnmappedUV);
+                    lUV2s[lVertexCount * 2 + 0] = lCurrentUV[0];
+                    lUV2s[lVertexCount * 2 + 1] = lCurrentUV[1];
+                }
             }
             ++lVertexCount;
         }
@@ -326,6 +373,9 @@ void GeomExporter::doExport(FbxObject* pObject){
     if( mHasUV )
         collapser->addStream( lUVs, 2 );
     
+    if( mHasUV2 )
+        collapser->addStream( lUV2s, 2 );
+    
     
     collapser->collapse();
     
@@ -348,6 +398,7 @@ void GeomExporter::doExport(FbxObject* pObject){
     awd_float64 *tVertices = new awd_float64[ lPolygonVertexCount * 3 ];
     awd_float64 *tNormals = NULL;
     awd_float64 *tUVs = NULL;
+    awd_float64 *tUV2s = NULL;
     
     if (mHasNormal)
     {
@@ -356,6 +407,10 @@ void GeomExporter::doExport(FbxObject* pObject){
     if (mHasUV)
     {
         tUVs = new awd_float64[lPolygonVertexCount * 2];
+    }
+    if (mHasUV2)
+    {
+        tUV2s = new awd_float64[lPolygonVertexCount * 2];
     }
     
     int * tIdxMap = new int[lPolygonCount * TRIANGLE_VERTEX_COUNT];
@@ -421,6 +476,11 @@ void GeomExporter::doExport(FbxObject* pObject){
                         tUVs[lsgNumVertices * 2 + 0] = lUVs[lCurrentIndex * 2 + 0];
                         tUVs[lsgNumVertices * 2 + 1] = lUVs[lCurrentIndex * 2 + 1];
                     }
+                    if (mHasUV2)
+                    {
+                        tUV2s[lsgNumVertices * 2 + 0] = lUV2s[lCurrentIndex * 2 + 0];
+                        tUV2s[lsgNumVertices * 2 + 1] = lUV2s[lCurrentIndex * 2 + 1];
+                    }
                     
                     // grow the number of vertices for this geom
                     lsgNumVertices++;
@@ -464,6 +524,11 @@ void GeomExporter::doExport(FbxObject* pObject){
                 memcpy(data->uvs	, 	tUVs, 		lsgNumVertices * 2 * sizeof( awd_float64 ) );
             }
             
+            if( mHasUV2 ) {
+                data->uvs2 		= new awd_float64[lsgNumVertices * 2];
+                memcpy(data->uvs2	, 	tUV2s, 		lsgNumVertices * 2 * sizeof( awd_float64 ) );
+            }
+            
             
             
             
@@ -481,23 +546,29 @@ void GeomExporter::doExport(FbxObject* pObject){
         free( lNormals );
     if( lUVs )
         free( lUVs );
+    if( lUV2s )
+        free( lUV2s );
     
     // free temp buffers
     //
     free( tVertices );
     if( tNormals )
-	    free( tNormals );
+        free( tNormals );
     if( tUVs )
-	    free( tUVs );
+        free( tUVs );
+    if( tUV2s )
+        free( tUV2s );
     
     
     lVertices = NULL;
     lIndices = NULL;
     lNormals = NULL;
     lUVs = NULL;
+    lUV2s = NULL;
     tVertices = NULL;
     tNormals = NULL;
     tUVs = NULL;
+    tUV2s = NULL;
     
     
     
@@ -505,10 +576,6 @@ void GeomExporter::doExport(FbxObject* pObject){
     
     
 
-
-    // TODO : handle hi precision
-    AWD_field_type precision_geo = AWD_FIELD_FLOAT32;
-    
     
     // create and setup a material exporter
     //
@@ -547,6 +614,11 @@ void GeomExporter::doExport(FbxObject* pObject){
     
     
     
+    
+    
+    
+    AWD_field_type precision_geo = mContext->GetSettings()->get_geoms_type();
+    
     const char *name = pMesh->GetName();
     AWDTriGeom* geom = new AWDTriGeom( name, static_cast<unsigned short>(strlen(name)) );
     
@@ -555,13 +627,12 @@ void GeomExporter::doExport(FbxObject* pObject){
         if( mSubMeshes[lsubIndex]->TriangleCount > 0 ) {
             
             
-            
-            
             AWDBlockList *sgMatList = new AWDBlockList();
             AWDBlock *mat = matList->getByIndex(lsubIndex);
             if( mat )
                 sgMatList->append( matList->getByIndex(lsubIndex) );
-            // I don't why sub geom need a material list here,
+            
+            // I don't know why subgeom need a material list here,
             // but give him what he want
             AWDSubGeom* subGeom = new AWDSubGeom( sgMatList );
             
@@ -587,15 +658,19 @@ void GeomExporter::doExport(FbxObject* pObject){
                 subGeom->add_stream(UVS, precision_geo, u_str, mSubMeshes[lsubIndex]->data->numVertices * 2);
             }
             
+            if (mHasUV2)
+            {
+                AWD_str_ptr su_str;
+                su_str.f64 = mSubMeshes[lsubIndex]->data->uvs2;
+                subGeom->add_stream(SUVS, precision_geo, su_str, mSubMeshes[lsubIndex]->data->numVertices * 2);
+            }
+            
             geom->add_sub_mesh( subGeom );
             
         }
     }
     
     mContext->add_mesh_data( geom, pMesh );
-    
-    
-    FBXSDK_printf("Geometry exported : %s\n", pObject->GetName() );
     
 }
 

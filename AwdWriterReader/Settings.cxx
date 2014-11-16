@@ -148,6 +148,15 @@ void Settings::set_embed_textures( bool value){
 
 
 
+AWD_field_type Settings::get_geoms_type(){
+    if( get_wide_geoms() ){
+        return AWD_FIELD_FLOAT64;
+    } else {
+        return AWD_FIELD_FLOAT32;
+    }
+}
+
+
 
 FbxProperty Settings::wide_matrix_property(FbxIOSettings* pIOS) {
     return pIOS->GetProperty( PROP_ID( WIDE_MATRIX ) );

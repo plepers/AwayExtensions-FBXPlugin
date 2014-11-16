@@ -59,6 +59,8 @@ public:
     double get_scale        ();
     AWD_compression get_compression();
     
+    AWD_field_type get_geoms_type();
+    
     static void FillDefaultValues( FbxIOSettings * );
     
 private:
