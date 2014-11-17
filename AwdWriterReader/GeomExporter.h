@@ -37,6 +37,7 @@ private:
         
         awd_float64 	*vertices;
         awd_float64		*normals;
+        awd_float64		*tangent;
         awd_float64		*uvs;
         awd_float64		*uvs2;
     };
@@ -54,6 +55,7 @@ private:
     FbxArray<SubMesh*> mSubMeshes;
     
     bool mHasNormal;
+    bool mHasTangent;
     bool mHasUV;
     bool mHasUV2;
     bool mAllByControlPoint;

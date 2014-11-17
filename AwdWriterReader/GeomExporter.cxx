@@ -141,45 +141,57 @@ void GeomExporter::doExport(FbxObject* pObject){
     // Here, all submeshes share the same VBOs, we will split them later
     // after a "collapsing" pass
     
-    mHasNormal  = pMesh->GetElementNormalCount() > 0;
-    mHasUV      = pMesh->GetElementUVCount() > 0;
-    mHasUV2     = pMesh->GetElementUVCount() > 1;
+    mHasNormal   = pMesh->GetElementNormalCount() > 0;
+    mHasTangent  = pMesh->GetElementTangentCount() > 0;
+    mHasUV       = pMesh->GetElementUVCount() > 0;
+    mHasUV2      = pMesh->GetElementUVCount() > 1;
     
-    FbxGeometryElement::EMappingMode lNormalMappingMode = FbxGeometryElement::eNone;
-    FbxGeometryElement::EMappingMode lUVMappingMode = FbxGeometryElement::eNone;
+    FbxGeometryElement::EMappingMode lMappingMode = FbxGeometryElement::eNone;
     
     if (mHasNormal)
     {
-        lNormalMappingMode = pMesh->GetElementNormal(0)->GetMappingMode();
-        if (lNormalMappingMode == FbxGeometryElement::eNone)
+        lMappingMode = pMesh->GetElementNormal(0)->GetMappingMode();
+        if (lMappingMode == FbxGeometryElement::eNone)
         {
             mHasNormal = false;
         }
-        if (mHasNormal && lNormalMappingMode != FbxGeometryElement::eByControlPoint)
+        if (mHasNormal && lMappingMode != FbxGeometryElement::eByControlPoint)
+        {
+            mAllByControlPoint = false;
+        }
+    }
+    if (mHasTangent)
+    {
+        lMappingMode = pMesh->GetElementTangent(0)->GetMappingMode();
+        if (lMappingMode == FbxGeometryElement::eNone)
+        {
+            mHasTangent = false;
+        }
+        if (mHasTangent && lMappingMode != FbxGeometryElement::eByControlPoint)
         {
             mAllByControlPoint = false;
         }
     }
     if (mHasUV)
     {
-        lUVMappingMode = pMesh->GetElementUV(0)->GetMappingMode();
-        if (lUVMappingMode == FbxGeometryElement::eNone)
+        lMappingMode = pMesh->GetElementUV(0)->GetMappingMode();
+        if (lMappingMode == FbxGeometryElement::eNone)
         {
             mHasUV = false;
         }
-        if (mHasUV && lUVMappingMode != FbxGeometryElement::eByControlPoint)
+        if (mHasUV && lMappingMode != FbxGeometryElement::eByControlPoint)
         {
             mAllByControlPoint = false;
         }
     }
     if (mHasUV2)
     {
-        lUVMappingMode = pMesh->GetElementUV(1)->GetMappingMode();
-        if (lUVMappingMode == FbxGeometryElement::eNone)
+        lMappingMode = pMesh->GetElementUV(1)->GetMappingMode();
+        if (lMappingMode == FbxGeometryElement::eNone)
         {
             mHasUV2 = false;
         }
-        if (mHasUV2 && lUVMappingMode != FbxGeometryElement::eByControlPoint)
+        if (mHasUV2 && lMappingMode != FbxGeometryElement::eByControlPoint)
         {
             mAllByControlPoint = false;
         }
@@ -194,17 +206,30 @@ void GeomExporter::doExport(FbxObject* pObject){
     awd_float64 * lVertices = new awd_float64[ lPolygonVertexCount * 3 ];
     unsigned int * lIndices = new unsigned int[lPolygonCount * TRIANGLE_VERTEX_COUNT];
     
+    
+    
+    FBXSDK_printf("             HAS TGT (%i) %i \n", mHasTangent , pMesh->GetElementTangentCount());
+    
+    
     awd_float64 * lNormals = NULL;
+    awd_float64 * lTangents = NULL;
+    awd_float64 * lUVs = NULL;
+    awd_float64 * lUV2s = NULL;
+    
     if (mHasNormal)
     {
         lNormals = new awd_float64[lPolygonVertexCount * 3];
+    }
+    
+    if (mHasTangent)
+    {
+        lTangents = new awd_float64[lPolygonVertexCount * 3];
     }
     
     
     FbxStringList lUVNames;
     pMesh->GetUVSetNames(lUVNames);
     
-    awd_float64 * lUVs = NULL;
     const char * lUVName = NULL;
     if (mHasUV && lUVNames.GetCount())
     {
@@ -212,7 +237,6 @@ void GeomExporter::doExport(FbxObject* pObject){
         lUVName = lUVNames[0];
     }
 
-    awd_float64 * lUV2s = NULL;
     const char * lUV2Name = NULL;
     if (mHasUV && lUVNames.GetCount() > 1)
     {
@@ -226,15 +250,23 @@ void GeomExporter::doExport(FbxObject* pObject){
     const FbxVector4 * lControlPoints = pMesh->GetControlPoints();
     FbxVector4 lCurrentVertex;
     FbxVector4 lCurrentNormal;
+    FbxVector4 lCurrentTangent;
     FbxVector2 lCurrentUV;
+    
     if (mAllByControlPoint)
     {
-        const FbxGeometryElementNormal * lNormalElement = NULL;
-        const FbxGeometryElementUV * lUVElement = NULL;
-        const FbxGeometryElementUV * lUV2Element = NULL;
+        const FbxGeometryElementNormal *    lNormalElement  = NULL;
+        const FbxGeometryElementTangent *   lTangentElement = NULL;
+        const FbxGeometryElementUV *        lUVElement      = NULL;
+        const FbxGeometryElementUV *        lUV2Element     = NULL;
+        
         if (mHasNormal)
         {
             lNormalElement = pMesh->GetElementNormal(0);
+        }
+        if (mHasTangent)
+        {
+            lTangentElement = pMesh->GetElementTangent(0);
         }
         if (mHasUV)
         {
@@ -265,6 +297,20 @@ void GeomExporter::doExport(FbxObject* pObject){
                 lNormals[lIndex * 3 + 0] = lCurrentNormal[0];
                 lNormals[lIndex * 3 + 1] = lCurrentNormal[1];
                 lNormals[lIndex * 3 + 2] = lCurrentNormal[2];
+            }
+            
+            // Save the tangent.
+            if (mHasTangent)
+            {
+                int lTangentIndex = lIndex;
+                if (lTangentElement->GetReferenceMode() == FbxLayerElement::eIndexToDirect)
+                {
+                    lTangentIndex = lTangentElement->GetIndexArray().GetAt(lIndex);
+                }
+                lCurrentTangent = lTangentElement->GetDirectArray().GetAt(lTangentIndex);
+                lTangents[lIndex * 3 + 0] = lCurrentTangent[0];
+                lTangents[lIndex * 3 + 1] = lCurrentTangent[1];
+                lTangents[lIndex * 3 + 2] = lCurrentTangent[2];
             }
             
             // Save the UV.
@@ -335,6 +381,14 @@ void GeomExporter::doExport(FbxObject* pObject){
                     lNormals[lVertexCount * 3 + 2] = lCurrentNormal[2];
                 }
                 
+                if (mHasTangent)
+                {
+                    pMesh->GetPolygonVertexNormal(lPolygonIndex, lVerticeIndex, lCurrentTangent);
+                    lTangents[lVertexCount * 3 + 0] = lCurrentTangent[0];
+                    lTangents[lVertexCount * 3 + 1] = lCurrentTangent[1];
+                    lTangents[lVertexCount * 3 + 2] = lCurrentTangent[2];
+                }
+                
                 if (mHasUV)
                 {
                     bool lUnmappedUV;
@@ -370,6 +424,9 @@ void GeomExporter::doExport(FbxObject* pObject){
     if( mHasNormal )
         collapser->addStream( lNormals, 3 );
     
+    if( mHasTangent )
+        collapser->addStream( lTangents, 3 );
+    
     if( mHasUV )
         collapser->addStream( lUVs, 2 );
     
@@ -395,14 +452,19 @@ void GeomExporter::doExport(FbxObject* pObject){
     
     unsigned int *tIndices;
     
-    awd_float64 *tVertices = new awd_float64[ lPolygonVertexCount * 3 ];
-    awd_float64 *tNormals = NULL;
-    awd_float64 *tUVs = NULL;
-    awd_float64 *tUV2s = NULL;
+    awd_float64 *tVertices  = new awd_float64[ lPolygonVertexCount * 3 ];
+    awd_float64 *tNormals   = NULL;
+    awd_float64 *tTangents  = NULL;
+    awd_float64 *tUVs       = NULL;
+    awd_float64 *tUV2s      = NULL;
     
     if (mHasNormal)
     {
         tNormals = new awd_float64[lPolygonVertexCount * 3];
+    }
+    if (mHasTangent)
+    {
+        tTangents = new awd_float64[lPolygonVertexCount * 3];
     }
     if (mHasUV)
     {
@@ -471,6 +533,13 @@ void GeomExporter::doExport(FbxObject* pObject){
                         tNormals[lsgNumVertices * 3 + 2] = lNormals[lCurrentIndex * 3 + 2];
                     }
                     
+                    if (mHasTangent)
+                    {
+                        tTangents[lsgNumVertices * 3 + 0] = tTangents[lCurrentIndex * 3 + 0];
+                        tTangents[lsgNumVertices * 3 + 1] = tTangents[lCurrentIndex * 3 + 1];
+                        tTangents[lsgNumVertices * 3 + 2] = tTangents[lCurrentIndex * 3 + 2];
+                    }
+                    
                     if (mHasUV)
                     {
                         tUVs[lsgNumVertices * 2 + 0] = lUVs[lCurrentIndex * 2 + 0];
@@ -513,10 +582,15 @@ void GeomExporter::doExport(FbxObject* pObject){
             
             data->vertices 	= new awd_float64[lsgNumVertices * 3];
             memcpy(data->vertices, 	tVertices, 	lsgNumVertices * 3 * sizeof( awd_float64 ) );
-
+            
             if (mHasNormal) {
-	            data->normals 	= new awd_float64[lsgNumVertices * 3];
+                data->normals 	= new awd_float64[lsgNumVertices * 3];
                 memcpy(data->normals, 	tNormals, 	lsgNumVertices * 3 * sizeof( awd_float64 ) );
+            }
+            
+            if (mHasTangent) {
+                data->tangent 	= new awd_float64[lsgNumVertices * 3];
+                memcpy(data->tangent, 	tTangents, 	lsgNumVertices * 3 * sizeof( awd_float64 ) );
             }
             
             if( mHasUV ) {
@@ -544,6 +618,8 @@ void GeomExporter::doExport(FbxObject* pObject){
     free( lIndices );
     if( lNormals )
         free( lNormals );
+    if( lTangents )
+        free( lTangents );
     if( lUVs )
         free( lUVs );
     if( lUV2s )
@@ -554,6 +630,8 @@ void GeomExporter::doExport(FbxObject* pObject){
     free( tVertices );
     if( tNormals )
         free( tNormals );
+    if( tTangents )
+        free( tTangents );
     if( tUVs )
         free( tUVs );
     if( tUV2s )
@@ -563,10 +641,12 @@ void GeomExporter::doExport(FbxObject* pObject){
     lVertices = NULL;
     lIndices = NULL;
     lNormals = NULL;
+    lTangents = NULL;
     lUVs = NULL;
     lUV2s = NULL;
     tVertices = NULL;
     tNormals = NULL;
+    tTangents= NULL;
     tUVs = NULL;
     tUV2s = NULL;
     
@@ -649,6 +729,12 @@ void GeomExporter::doExport(FbxObject* pObject){
                 AWD_str_ptr n_str;
                 n_str.f64 = mSubMeshes[lsubIndex]->data->normals;
                 subGeom->add_stream(VERTEX_NORMALS, precision_geo, n_str, mSubMeshes[lsubIndex]->data->numVertices * 3);
+            }
+            if (mHasTangent)
+            {
+                AWD_str_ptr t_str;
+                t_str.f64 = mSubMeshes[lsubIndex]->data->tangent;
+                subGeom->add_stream(VERTEX_TANGENTS, precision_geo, t_str, mSubMeshes[lsubIndex]->data->numVertices * 3);
             }
             
             if (mHasUV)
