@@ -14,9 +14,12 @@
 
 namespace AwdUtils {
     
-    void CopyNodeTransform( FbxNode* pNode, AWDSceneBlock* sceneBlock );
+    void CopyNodeName( FbxObject* , AWDNamedElement*  );
+    void CopyNodeTransform( FbxNode* , AWDSceneBlock*  );
     
-    bool isMatrix2dIdentity( awd_float64 *mtx );
+    bool isMatrix2dIdentity( awd_float64 *mtx3x2 );
+    
+    
 }
 
 #endif /* defined(__FbxAwdExporter__utils__) */

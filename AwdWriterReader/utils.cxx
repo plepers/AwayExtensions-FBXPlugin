@@ -9,6 +9,15 @@
 #include "utils.h"
 
 
+void AwdUtils::CopyNodeName( FbxObject* pObj, AWDNamedElement* block )
+{
+    const char *name = pObj->GetName();
+    char *bName = (char*) malloc(strlen( name ) + 1);
+    strcpy( bName, name );
+    block->set_name( bName, static_cast<unsigned short>( strlen( bName ) ) );
+}
+
+
 void AwdUtils::CopyNodeTransform( FbxNode* pNode, AWDSceneBlock* sceneBlock )
 {
     

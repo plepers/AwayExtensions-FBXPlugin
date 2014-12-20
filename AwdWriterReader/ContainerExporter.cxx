@@ -17,8 +17,8 @@ void ContainerExporter::doExport(FbxObject* pObj){
     
     FbxNode *lNode = (FbxNode*) pObj;
     
-    const char *name = lNode->GetName();
-    AWDContainer* awdContainer = new AWDContainer( name, static_cast<unsigned short>(strlen(name)) );
+    AWDContainer* awdContainer = new AWDContainer( NULL, 0 );
+    AwdUtils::CopyNodeName( pObj, awdContainer );
     
     AwdUtils::CopyNodeTransform( lNode, awdContainer );
     

@@ -13,6 +13,7 @@
 
 #include "GeomExporter.h"
 #include "MaterialExporter.h"
+#include "utils.h"
 
 
 const int TRIANGLE_VERTEX_COUNT = 3;
@@ -699,8 +700,8 @@ void GeomExporter::doExport(FbxObject* pObject){
     
     AWD_field_type precision_geo = mContext->GetSettings()->get_geoms_type();
     
-    const char *name = pMesh->GetName();
-    AWDTriGeom* geom = new AWDTriGeom( name, static_cast<unsigned short>(strlen(name)) );
+    AWDTriGeom* geom = new AWDTriGeom( NULL, 0 );
+    AwdUtils::CopyNodeName( pMesh, geom );
     
     for ( lsubIndex = 0; lsubIndex<mSubMeshes.GetCount(); lsubIndex++) {
         FBXSDK_printf("    submesh num tris : %i\n",mSubMeshes[lsubIndex]->TriangleCount );
