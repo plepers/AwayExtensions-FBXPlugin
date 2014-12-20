@@ -12,6 +12,9 @@
 
 #include "NodeExporter.h"
 
+const AWD_mesh_str_type COLORS = static_cast<AWD_mesh_str_type>(11);
+
+
 
 class GeomExporter : public NodeExporter
 {
@@ -38,6 +41,7 @@ private:
         awd_float64 	*vertices;
         awd_float64		*normals;
         awd_float64		*tangent;
+        awd_float64		*colors;
         awd_float64		*uvs;
         awd_float64		*uvs2;
     };
@@ -58,6 +62,7 @@ private:
     bool mHasTangent;
     bool mHasUV;
     bool mHasUV2;
+    bool mHasVC;
     bool mAllByControlPoint;
 };
 

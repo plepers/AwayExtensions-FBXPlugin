@@ -146,6 +146,7 @@ void GeomExporter::doExport(FbxObject* pObject){
     mHasTangent  = pMesh->GetElementTangentCount() > 0;
     mHasUV       = pMesh->GetElementUVCount() > 0;
     mHasUV2      = pMesh->GetElementUVCount() > 1;
+    mHasVC       = pMesh->GetElementVertexColorCount() > 0;
     
     FbxGeometryElement::EMappingMode lMappingMode = FbxGeometryElement::eNone;
     
@@ -197,6 +198,21 @@ void GeomExporter::doExport(FbxObject* pObject){
             mAllByControlPoint = false;
         }
     }
+    if (mHasVC)
+    {
+        lMappingMode = pMesh->GetElementVertexColor(0)->GetMappingMode();
+        if (lMappingMode == FbxGeometryElement::eNone)
+        {
+            mHasVC = false;
+        }
+        if (mHasVC && lMappingMode != FbxGeometryElement::eByControlPoint)
+        {
+            // Vertex Color seem to can't be stored per vertex.
+            mHasVC = false;
+            mAllByControlPoint = false;
+        }
+    }
+    
     
     // Allocate the array memory, by control point or by polygon vertex.
     int lPolygonVertexCount = pMesh->GetControlPointsCount();
@@ -216,6 +232,7 @@ void GeomExporter::doExport(FbxObject* pObject){
     awd_float64 * lTangents = NULL;
     awd_float64 * lUVs = NULL;
     awd_float64 * lUV2s = NULL;
+    awd_float64 * lVCs = NULL;
     
     if (mHasNormal)
     {
@@ -225,6 +242,11 @@ void GeomExporter::doExport(FbxObject* pObject){
     if (mHasTangent)
     {
         lTangents = new awd_float64[lPolygonVertexCount * 3];
+    }
+    
+    if (mHasVC)
+    {
+        lVCs = new awd_float64[lPolygonVertexCount * 3];
     }
     
     
@@ -253,13 +275,15 @@ void GeomExporter::doExport(FbxObject* pObject){
     FbxVector4 lCurrentNormal;
     FbxVector4 lCurrentTangent;
     FbxVector2 lCurrentUV;
+    FbxColor   lCurrentVC;
     
     if (mAllByControlPoint)
     {
-        const FbxGeometryElementNormal *    lNormalElement  = NULL;
-        const FbxGeometryElementTangent *   lTangentElement = NULL;
-        const FbxGeometryElementUV *        lUVElement      = NULL;
-        const FbxGeometryElementUV *        lUV2Element     = NULL;
+        const FbxGeometryElementNormal *        lNormalElement  = NULL;
+        const FbxGeometryElementTangent *       lTangentElement = NULL;
+        const FbxGeometryElementUV *            lUVElement      = NULL;
+        const FbxGeometryElementUV *            lUV2Element     = NULL;
+        const FbxGeometryElementVertexColor *   lVCElement     = NULL;
         
         if (mHasNormal)
         {
@@ -276,6 +300,10 @@ void GeomExporter::doExport(FbxObject* pObject){
         if (mHasUV2)
         {
             lUV2Element = pMesh->GetElementUV(1);
+        }
+        if (mHasVC)
+        {
+            lVCElement = pMesh->GetElementVertexColor(0);
         }
         
         for (int lIndex = 0; lIndex < lPolygonVertexCount; ++lIndex)
@@ -337,6 +365,18 @@ void GeomExporter::doExport(FbxObject* pObject){
                 lUV2s[lIndex * 2 + 0] = lCurrentUV[0];
                 lUV2s[lIndex * 2 + 1] = lCurrentUV[1];
             }
+            if (mHasVC)
+            {
+                int lVCIndex = lIndex;
+                if (lVCElement->GetReferenceMode() == FbxLayerElement::eIndexToDirect)
+                {
+                    lVCIndex = lVCElement->GetIndexArray().GetAt(lIndex);
+                }
+                lCurrentVC = lVCElement->GetDirectArray().GetAt(lVCIndex);
+                lVCs[lIndex * 3 + 0] = lCurrentVC.mRed;
+                lVCs[lIndex * 3 + 1] = lCurrentVC.mGreen;
+                lVCs[lIndex * 3 + 2] = lCurrentVC.mBlue;
+            }
         }
         
     }
@@ -365,6 +405,7 @@ void GeomExporter::doExport(FbxObject* pObject){
                 lIndices[lIndexOffset + lVerticeIndex] = static_cast<unsigned int>(lControlPointIndex);
             }
             // Populate the array with vertex attribute, if by polygon vertex.
+            // note : vertex colors can't be retreived in this case ?
             else
             {
                 lIndices[lIndexOffset + lVerticeIndex] = static_cast<unsigned int>(lVertexCount);
@@ -434,6 +475,9 @@ void GeomExporter::doExport(FbxObject* pObject){
     if( mHasUV2 )
         collapser->addStream( lUV2s, 2 );
     
+    if( mHasVC )
+        collapser->addStream( lVCs, 3 );
+    
     
     collapser->collapse();
     
@@ -458,6 +502,7 @@ void GeomExporter::doExport(FbxObject* pObject){
     awd_float64 *tTangents  = NULL;
     awd_float64 *tUVs       = NULL;
     awd_float64 *tUV2s      = NULL;
+    awd_float64 *tVCs       = NULL;
     
     if (mHasNormal)
     {
@@ -474,6 +519,10 @@ void GeomExporter::doExport(FbxObject* pObject){
     if (mHasUV2)
     {
         tUV2s = new awd_float64[lPolygonVertexCount * 2];
+    }
+    if (mHasVC)
+    {
+        tVCs = new awd_float64[lPolygonVertexCount * 3];
     }
     
     int * tIdxMap = new int[lPolygonCount * TRIANGLE_VERTEX_COUNT];
@@ -541,6 +590,13 @@ void GeomExporter::doExport(FbxObject* pObject){
                         tTangents[lsgNumVertices * 3 + 2] = tTangents[lCurrentIndex * 3 + 2];
                     }
                     
+                    if (mHasVC)
+                    {
+                        tVCs[lsgNumVertices * 3 + 0] = tVCs[lCurrentIndex * 3 + 0];
+                        tVCs[lsgNumVertices * 3 + 1] = tVCs[lCurrentIndex * 3 + 1];
+                        tVCs[lsgNumVertices * 3 + 2] = tVCs[lCurrentIndex * 3 + 2];
+                    }
+                    
                     if (mHasUV)
                     {
                         tUVs[lsgNumVertices * 2 + 0] = lUVs[lCurrentIndex * 2 + 0];
@@ -594,6 +650,11 @@ void GeomExporter::doExport(FbxObject* pObject){
                 memcpy(data->tangent, 	tTangents, 	lsgNumVertices * 3 * sizeof( awd_float64 ) );
             }
             
+            if (mHasVC) {
+                data->colors 	= new awd_float64[lsgNumVertices * 3];
+                memcpy(data->colors, 	tVCs, 	lsgNumVertices * 3 * sizeof( awd_float64 ) );
+            }
+            
             if( mHasUV ) {
                 data->uvs 		= new awd_float64[lsgNumVertices * 2];
                 memcpy(data->uvs	, 	tUVs, 		lsgNumVertices * 2 * sizeof( awd_float64 ) );
@@ -625,6 +686,8 @@ void GeomExporter::doExport(FbxObject* pObject){
         free( lUVs );
     if( lUV2s )
         free( lUV2s );
+    if( lVCs )
+        free( lVCs );
     
     // free temp buffers
     //
@@ -637,6 +700,8 @@ void GeomExporter::doExport(FbxObject* pObject){
         free( tUVs );
     if( tUV2s )
         free( tUV2s );
+    if( tVCs )
+        free( tVCs );
     
     
     lVertices = NULL;
@@ -645,11 +710,13 @@ void GeomExporter::doExport(FbxObject* pObject){
     lTangents = NULL;
     lUVs = NULL;
     lUV2s = NULL;
+    lVCs = NULL;
     tVertices = NULL;
     tNormals = NULL;
     tTangents= NULL;
     tUVs = NULL;
     tUV2s = NULL;
+    tVCs = NULL;
     
     
     
@@ -736,6 +803,12 @@ void GeomExporter::doExport(FbxObject* pObject){
                 AWD_str_ptr t_str;
                 t_str.f64 = mSubMeshes[lsubIndex]->data->tangent;
                 subGeom->add_stream(VERTEX_TANGENTS, precision_geo, t_str, mSubMeshes[lsubIndex]->data->numVertices * 3);
+            }
+            if (mHasVC)
+            {
+                AWD_str_ptr t_str;
+                t_str.f64 = mSubMeshes[lsubIndex]->data->colors;
+                subGeom->add_stream(COLORS, precision_geo, t_str, mSubMeshes[lsubIndex]->data->numVertices * 3);
             }
             
             if (mHasUV)
