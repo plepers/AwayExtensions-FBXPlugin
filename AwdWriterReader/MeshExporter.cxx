@@ -79,8 +79,9 @@ void MeshExporter::doExport(FbxObject* pObj){
     while (sub) {
         if( sub->get_materials()->get_num_blocks() > 0 )
         {
-            materialList->append( sub->get_materials()->first_block->block );
-            awdMesh->add_material( (AWDMaterial*)sub->get_materials()->first_block->block );
+            AWDMaterial *mat = (AWDMaterial*)sub->get_materials()->first_block->block;
+            materialList->append( mat );
+            awdMesh->add_material( mat );
         } else {
             // TODO : here we should add a default material or whatever to fill the hole
             // and keep a correct material mapping

@@ -22,10 +22,9 @@ void AwdUtils::CopyNodeTransform( FbxNode* pNode, AWDSceneBlock* sceneBlock )
 {
     
     FbxAMatrix lLocal;
+
     
-    
-    
-    static double rawMatrix[12];
+    double *rawMatrix  = new double[ 12 ];
     
     // did this evaluate pivot
     //lLocal = CalculateGlobalTransform( pNode );//
@@ -48,9 +47,9 @@ void AwdUtils::CopyNodeTransform( FbxNode* pNode, AWDSceneBlock* sceneBlock )
     rawMatrix[10] = lLocal.GetRow(3).mData[1];
     rawMatrix[11] = lLocal.GetRow(3).mData[2];
     
-    FbxDouble3 lTranslation = pNode->LclTranslation.Get();
-    FbxDouble3 lRotation    = pNode->LclRotation.Get();
-    FbxDouble3 lScaling     = pNode->LclScaling.Get();
+//    FbxDouble3 lTranslation = pNode->LclTranslation.Get();
+//    FbxDouble3 lRotation    = pNode->LclRotation.Get();
+//    FbxDouble3 lScaling     = pNode->LclScaling.Get();
     
     //    FBXSDK_printf( "  %f, %f, %f\n", lTranslation.mData[0], lTranslation.mData[1], lTranslation.mData[2] );
     //    FBXSDK_printf( "  %f, %f, %f\n", lRotation.mData[0], lRotation.mData[1], lRotation.mData[2] );
