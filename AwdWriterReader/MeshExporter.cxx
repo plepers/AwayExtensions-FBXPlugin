@@ -28,7 +28,7 @@ void MeshExporter::doExport(FbxObject* pObj){
     
     // export Geometry
     
-    AWDBlock *geomBlock = NULL;
+    AWDTriGeom *geomBlock = NULL;
     
     FbxMesh *lMesh = pNode->GetMesh();
     
@@ -44,7 +44,7 @@ void MeshExporter::doExport(FbxObject* pObj){
         // (Triangulation)
         lMesh = pNode->GetMesh();
         
-        geomBlock = mContext->GetBlocksMap()->Get( lMesh );
+        geomBlock = (AWDTriGeom*) mContext->GetBlocksMap()->Get( lMesh );
         
         if( geomBlock == NULL )
         {
@@ -73,14 +73,22 @@ void MeshExporter::doExport(FbxObject* pObj){
     
     AWDBlockList *materialList = new AWDBlockList();
     
-    int numMaterials = pNode->GetMaterialCount();
+    AWDSubGeom *sub;
     
-    for ( int matIndex = 0; matIndex < numMaterials; matIndex++ )
-    {
-        AWDBlock *matBlock = mContext->GetBlocksMap()->Get(pNode->GetMaterial( matIndex ) );
-        materialList->append( matBlock );
-        awdMesh->add_material( (AWDMaterial*)matBlock );
+    sub = geomBlock->get_first_sub();
+    while (sub) {
+        if( sub->get_materials()->get_num_blocks() > 0 )
+        {
+            materialList->append( sub->get_materials()->first_block->block );
+            awdMesh->add_material( (AWDMaterial*)sub->get_materials()->first_block->block );
+        } else {
+            // TODO : here we should add a default material or whatever to fill the hole
+            // and keep a correct material mapping
+            FBXSDK_printf( "WARN : subgeom without material found! stream 0 len : %i \n", sub->get_stream_at(0)->get_length() );
+        }
+        sub = sub->next;
     }
+    
     
     awdMesh->set_defaultMat(materialList->getByIndex(0));
     awdMesh->set_pre_materials( materialList );

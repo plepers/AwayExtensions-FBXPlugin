@@ -748,7 +748,10 @@ void GeomExporter::doExport(FbxObject* pObject){
                 matExporter->doExport( lMaterial );
             
                 AWDBlock *mat = mContext->GetBlocksMap()->Get( lMaterial );
+                
                 matList->append(mat);
+                
+                
             }
             else {
                 // todo ?? use a default mat here?
@@ -756,6 +759,8 @@ void GeomExporter::doExport(FbxObject* pObject){
             }
             
             
+        } else {
+            matList->append(NULL);
         }
     }
     matExporter->release();
@@ -776,9 +781,13 @@ void GeomExporter::doExport(FbxObject* pObject){
             
             
             AWDBlockList *sgMatList = new AWDBlockList();
-            AWDBlock *mat = matList->getByIndex(lsubIndex);
-            if( mat )
-                sgMatList->append( matList->getByIndex(lsubIndex) );
+            
+            FbxSurfaceMaterial * lMaterial = pMesh->GetNode()->GetMaterial( lsubIndex );
+            AWDBlock *mat = mContext->GetBlocksMap()->Get( lMaterial );
+            
+            if( mat ) {
+                sgMatList->append( mat );
+            }
             
             // I don't know why subgeom need a material list here,
             // but give him what he want

@@ -67,22 +67,30 @@ int main(int argc, char** argv)
         cmd.add( outputArg );
         cmd.add( scaleArg );
         
+        // precision options
+        //
         TCLAP::SwitchArg precisionSwitch("W","precision","export all datas with double precision", cmd, false);
         TCLAP::SwitchArg wideAttrSwitch("","wa","export attributes with double precision", cmd, false);
         TCLAP::SwitchArg wideGeomSwitch("","wg","export geometries with double precision", cmd, false);
         TCLAP::SwitchArg wideMatrSwitch("","wm","export matrices with double precision", cmd, false);
         TCLAP::SwitchArg widePropSwitch("","wp","export properties with double precision", cmd, false);
         
-        TCLAP::SwitchArg compressLzma("","lzma","compress output using LZMA", false);
-        TCLAP::SwitchArg compressDefl("","deflate","compress output using deflate", false);
-        
-        
+        // misc options
+        //
         TCLAP::SwitchArg embedTexSwitch("t","textures","embed textures", cmd, false);
         TCLAP::SwitchArg exportEmptySwitch("e","empty","export empty containers", cmd, true);
         
+        //compression options
+        //
+        std::vector<std::string> compEnums;
+        compEnums.push_back("uncompressed");
+        compEnums.push_back("lzma");
+        compEnums.push_back("deflate");
+        TCLAP::ValuesConstraint<std::string> allowedComps( compEnums );
+        TCLAP::ValueArg<std::string> compressArg( "c","compression","compression type", false, "uncompressed", &allowedComps);
         
         
-        cmd.xorAdd( compressLzma, compressDefl );
+        cmd.add( compressArg );
         
         
         cmd.parse( argc, argv );
@@ -90,6 +98,7 @@ int main(int argc, char** argv)
         // Get the value parsed by each arg.
         input           = inputArg.getValue();
         output          = outputArg.getValue();
+        compression     = compressArg.getValue();
         embedTextures   = embedTexSwitch.getValue();
         exportEmpty     = exportEmptySwitch.getValue();
         sceneScale      = scaleArg.getValue();
@@ -102,12 +111,14 @@ int main(int argc, char** argv)
         // Do what you intend.
         std::cout << "input : " << input << std::endl;
         
-        if( compressLzma.getValue() ) {
+        if( compression == "uncompressed" ) {
+            compressionEnum = UNCOMPRESSED;
+        } else if( compression == "lzma" ){
             compressionEnum = LZMA;
-        } else if( compressDefl.getValue() ){
+        } else if( compression != "deflate" ){
             compressionEnum = DEFLATE;
         } else {
-            compressionEnum = UNCOMPRESSED;
+            throw("Unsupported compression (-c) argument, should be < uncompressed | lzma | deflate >");
         }
         
         
