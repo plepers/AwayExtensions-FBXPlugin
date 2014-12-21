@@ -13,6 +13,8 @@
 #include <fbxsdk.h>
 #include <awd/awd.h>
 
+#include "ExporterConfig.h"
+
 #define WIDE_MATRIX         "precision_mtx"
 #define WIDE_GEOMS          "precision_geo"
 #define WIDE_PROPS          "precision_props"
@@ -25,7 +27,7 @@
 
 #define AWD_OPTION_GROUP EXP_ADV_OPT_GRP
 
-#define PROP_ID( _ID ) AWD_OPTION_GROUP "|" PLUGIN_NAME "|" _ID
+#define PROP_ID( _ID ) AWD_OPTION_GROUP "|" FbxAwdExporter_PLUGIN_NAME "|" _ID
 
 class Settings
 {

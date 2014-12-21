@@ -33,7 +33,7 @@ void Settings::FillDefaultValues( FbxIOSettings *pIOS ){
     FbxProperty FBXExtentionsSDKGroup = pIOS->GetProperty(AWD_OPTION_GROUP);
     if( !FBXExtentionsSDKGroup.IsValid() ) return;
 
-    FbxProperty IOPluginGroup = pIOS->AddPropertyGroup(FBXExtentionsSDKGroup, PLUGIN_NAME, FbxStringDT, PLUGIN_NAME);
+    FbxProperty IOPluginGroup = pIOS->AddPropertyGroup(FBXExtentionsSDKGroup, FbxAwdExporter_PLUGIN_NAME, FbxStringDT, FbxAwdExporter_PLUGIN_NAME);
 
     if( IOPluginGroup.IsValid() )
     {
@@ -77,7 +77,7 @@ void Settings::FillDefaultValues( FbxIOSettings *pIOS ){
 
 
 FbxProperty Settings::getSettingsGroup(){
-    FbxProperty group = mIOSettings->GetProperty( AWD_OPTION_GROUP "|" PLUGIN_NAME );
+    FbxProperty group = mIOSettings->GetProperty( AWD_OPTION_GROUP "|" FbxAwdExporter_PLUGIN_NAME );
     return group;
 }
 

@@ -1,3 +1,8 @@
 // the configured options and settings for Tutorial
-#define FbxAwdExporter_VERSION_MAJOR @Tutorial_VERSION_MAJOR@
-#define FbxAwdExporter_VERSION_MINOR @Tutorial_VERSION_MINOR@
+#define FbxAwdExporter_VERSION_MAJOR @FbxAwdExporter_VERSION_MAJOR@
+#define FbxAwdExporter_VERSION_MINOR @FbxAwdExporter_VERSION_MINOR@
+#define FbxAwdExporter_VERSION_STR "@FbxAwdExporter_VERSION_MAJOR@.@FbxAwdExporter_VERSION_MINOR@"
+
+#define FbxAwdExporter_PLUGIN_EXTENSION "@FbxAwdExporter_PLUGIN_EXTENSION@"
+#define FbxAwdExporter_PLUGIN_DESCRIPTION "@FbxAwdExporter_PLUGIN_DESCRIPTION@"
+#define FbxAwdExporter_PLUGIN_NAME "@FbxAwdExporter_PLUGIN_NAME@"

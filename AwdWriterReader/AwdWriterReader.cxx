@@ -27,13 +27,13 @@ void* GetAwdWriterInfo(FbxWriter::EInfoRequest pRequest, int /*pId*/)
 {
     static const char* sExt[] =
     {
-        PLUGIN_EXTENSION,
+        FbxAwdExporter_PLUGIN_EXTENSION,
         0
     };
 
     static const char* sDesc[] =
     {
-        "Away3D AWD (*.AWD)",
+        FbxAwdExporter_PLUGIN_DESCRIPTION,
         0
     };
 

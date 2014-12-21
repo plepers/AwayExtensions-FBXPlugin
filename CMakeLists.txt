@@ -10,9 +10,14 @@ set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/CMakeModules;${CMAKE_MODULE_PATH}")
 
 
 
-# The version number.
-set (FbxAwdExporter_VERSION_MAJOR 1)
-set (FbxAwdExporter_VERSION_MINOR 0)
+# FBX plugin constants.
+set (FbxAwdExporter_VERSION_MAJOR 0)
+set (FbxAwdExporter_VERSION_MINOR 1)
+set (FbxAwdExporter_PLUGIN_EXTENSION "awd")
+set (FbxAwdExporter_PLUGIN_DESCRIPTION "Away3D AWD (*.awd)")
+set (FbxAwdExporter_PLUGIN_NAME "Awd_Writer_Reader")
+
+
 
 # find FBX_SDK
 FIND_PACKAGE(FBX REQUIRED)
@@ -54,6 +59,7 @@ include_directories("${PROJECT_SOURCE_DIR}/include")
 include_directories( SYSTEM ${FBX_INCLUDE_DIRS} )
 include_directories( SYSTEM ${AWD_INCLUDE_DIRS} )
 include_directories("${PROJECT_SOURCE_DIR}/AwdWriterReader")
+include_directories("${PROJECT_SOURCE_DIR}/submodules/tclap/include")
 
 set( LINK_LIBRARIES ${FBX_LIBRARIES} ${AWD_LIBRARIES} )
 
@@ -67,3 +73,6 @@ TARGET_LINK_LIBRARIES ( fbx2awd ${LINK_LIBRARIES} )
 #
 # Tests
 #
+
+enable_testing()
+add_test( test fbx2awd /Applications/Autodesk/FBX\ SDK/2015.1/samples/UVSample/Sadface.FBX )

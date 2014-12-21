@@ -29,85 +29,161 @@
 #include <fbxsdk.h>
 
 #include "Common.h"
+#include "ExporterConfig.h"
+#include "Settings.h"
 
-// #define SAMPLE_FILENAME "/Users/plepers/work/workspaces/c/fbx_awd_converter/sample/box_blender.fbx"
-//#define SAMPLE_FILENAME "/Users/plepers/work/libs/metaioSDK/_Unity/Example/Assets/TutorialInstantTracking/tiger/tiger.fbx"
-#define SAMPLE_FILENAME "/Applications/Autodesk/FBX\ SDK/2015.1/samples/UVSample/Sadface.FBX"
-//#define SAMPLE_FILENAME "/Users/plepers/tmp/awd.fbx"
+#include <tclap/CmdLine.h>
 
-
-const char* lFileTypes[] =
-{
-//    "_dae.dae",             "Collada DAE (*.dae)",
-//    "_fbx7binary.fbx",      "FBX binary (*.fbx)",
-//    "_fbx7ascii.fbx",       "FBX ascii (*.fbx)",
-//    "_fbx6binary.fbx",      "FBX 6.0 binary (*.fbx)",
-//    "_fbx6ascii.fbx",       "FBX 6.0 ascii (*.fbx)",
-//    "_obj.obj",             "Alias OBJ (*.obj)",
-//    "_dxf.dxf",             "AutoCAD DXF (*.dxf)",
-    "_awd.awd",             "Away3D AWD (*.AWD)"
-};
 
 int main(int argc, char** argv)
 {
     
+    std::string input;
+    std::string output;
+    std::string compression;
+    AWD_compression compressionEnum;
+    bool precision;
+    bool embedTextures;
+    bool exportEmpty;
+    double sceneScale;
     
-    FbxString lFilePath("");
-    for( int i = 1, c = argc; i < c; ++i )
-    {
-        if( FbxString(argv[i]) == "-test" ) continue;
-        else if( lFilePath.IsEmpty() ) lFilePath = argv[i];
+    
+    // Parse cmdlne args using tclap
+    try {
+        
+
+        TCLAP::CmdLine cmd("fbx2awd converter", ' ', FbxAwdExporter_VERSION_STR);
+
+        
+        TCLAP::UnlabeledValueArg<std::string> inputArg( "input", "file's path to convert", true, "", "input" );
+        
+        TCLAP::ValueArg<std::string> outputArg("o","output","output file's path", false, "", "output AWD file's path");
+        TCLAP::ValueArg<float> scaleArg("s","scale","scale", false, 1.0, "scale");
+        
+        cmd.add( inputArg );
+        cmd.add( outputArg );
+        cmd.add( scaleArg );
+        
+        TCLAP::SwitchArg precisionSwitch("p","precision","export with double precision", cmd, false);
+        TCLAP::SwitchArg embedTexSwitch("t","textures","embed textures", cmd, false);
+        TCLAP::SwitchArg exportEmptySwitch("e","empty","export empty containers", cmd, true);
+        
+        TCLAP::ValueArg<std::string> compressArg( "c","compression","compression type", false, "uncompressed", "compression < uncompressed | lzma | deflate >");
+        
+        
+        cmd.add( compressArg );
+        
+        cmd.parse( argc, argv );
+        
+        // Get the value parsed by each arg.
+        input = inputArg.getValue();
+        output = outputArg.getValue();
+        compression = compressArg.getValue();
+        precision = precisionSwitch.getValue();
+        embedTextures = embedTexSwitch.getValue();
+        exportEmpty = exportEmptySwitch.getValue();
+        sceneScale = scaleArg.getValue();
+        
+        // Do what you intend.
+        std::cout << "input : " << input << std::endl;
+        
+        if( compression == "uncompressed" ) {
+            compressionEnum = UNCOMPRESSED;
+        } else if( compression == "lzma" ){
+            compressionEnum = LZMA;
+        } else if( compression != "deflate" ){
+            compressionEnum = DEFLATE;
+        } else {
+            throw("Unsupported compression (-c) argument, should be < uncompressed | lzma | deflate >");
+        }
+        
+        
+        
     }
-    if( lFilePath.IsEmpty() ) lFilePath = SAMPLE_FILENAME;
+    catch (TCLAP::ArgException &e)  // catch any exceptions
+    {
+        std::cerr << "error: " << e.error() << " for arg " << e.argId() << std::endl;
+        return 1;
+    }
+    
+    
+    
+    
+    
+    
+
+    
+    FbxString lInputPath( input.c_str() );
+    FbxString lOutputPath( output.c_str() );
+    
+    if( lInputPath.IsEmpty() ) {
+        // This should already be handled by tclap
+        FBXSDK_printf("Error: empty input file\n");
+    }
+    
+    
+    if( lOutputPath.IsEmpty() ) {
+        const size_t lFileNameLength = strlen(lInputPath.Buffer());
+        char* lNewFileName = new char[lFileNameLength+64];
+        FBXSDK_strcpy(lNewFileName,lFileNameLength+64,lInputPath.Buffer());
+        FBXSDK_strcpy(lNewFileName+lFileNameLength-3,61, FbxAwdExporter_PLUGIN_EXTENSION);
+        lOutputPath = lNewFileName;
+        delete[] lNewFileName;
+    }
 
     FbxManager* lSdkManager = NULL;
     FbxScene* lScene = NULL;
 
     // Prepare the FBX SDK.
     InitializeSdkObjects(lSdkManager, lScene);
-    
 
-    bool lResult = LoadScene(lSdkManager, lScene, lFilePath.Buffer());
+
+    bool lResult = LoadScene(lSdkManager, lScene, lInputPath.Buffer());
     if( lResult )
     {
-        const size_t lFileNameLength = strlen((argc>=3)?argv[2]:lFilePath.Buffer());
-        char* lNewFileName = new char[lFileNameLength+64];
-        FBXSDK_strcpy(lNewFileName,lFileNameLength+64,(argc>=3)?argv[2]:lFilePath.Buffer());
-
-        const size_t lFileTypeCount = sizeof(lFileTypes)/sizeof(lFileTypes[0])/2;
-
-        for(size_t i=0; i<lFileTypeCount; ++i)
+        
+        
+        // Retrieve the writer ID according to the description of file format.
+        int lFormat = lSdkManager->GetIOPluginRegistry()->FindWriterIDByDescription(FbxAwdExporter_PLUGIN_DESCRIPTION);
+        
+        // Create an exporter.
+        FbxExporter* lExporter = FbxExporter::Create(lSdkManager, "");
+        
+        // setup FbxIOSettings
+        FbxIOSettings* ioSettings = lSdkManager->GetIOSettings();
+        
+        Settings *settings = new Settings( ioSettings );
+        settings->set_compression(  compressionEnum);
+        settings->set_wide_attribs( precision);
+        settings->set_wide_geoms(   precision);
+        settings->set_wide_matrix(  precision);
+        settings->set_wide_props(   precision);
+        settings->set_embed_textures(embedTextures);
+        settings->set_export_empty( exportEmpty );
+        settings->set_scale(        sceneScale );
+        delete settings;
+        
+        // Initialize the exporter.
+        lResult = lExporter->Initialize( lOutputPath, lFormat, ioSettings );
+        if( !lResult )
         {
-            // Retrieve the writer ID according to the description of file format.
-            int lFormat = lSdkManager->GetIOPluginRegistry()->FindWriterIDByDescription(lFileTypes[i*2+1]);
-            
-            // Construct the output file name.
-            FBXSDK_strcpy(lNewFileName+lFileNameLength-4,60, lFileTypes[i*2]);
-
-            // Create an exporter.
-            FbxExporter* lExporter = FbxExporter::Create(lSdkManager, "");
-
-            // Initialize the exporter.
-            lResult = lExporter->Initialize(lNewFileName, lFormat, lSdkManager->GetIOSettings());
+            FBXSDK_printf("%s:\tCall to FbxExporter::Initialize() failed.\n", lOutputPath.Buffer() );
+            FBXSDK_printf("Error returned: %s\n\n", lExporter->GetStatus().GetErrorString());
+        }
+        else
+        {
+            // Export the scene.
+            lResult = lExporter->Export(lScene);
             if( !lResult )
             {
-                FBXSDK_printf("%s:\tCall to FbxExporter::Initialize() failed.\n", lFileTypes[i*2+1]);
-                FBXSDK_printf("Error returned: %s\n\n", lExporter->GetStatus().GetErrorString());
+                FBXSDK_printf("Call to FbxExporter::Export() failed.\n");
             }
-            else
-            {
-                // Export the scene.
-                lResult = lExporter->Export(lScene);
-                if( !lResult )
-                {
-                    FBXSDK_printf("Call to FbxExporter::Export() failed.\n");
-                }
-            }
-
-            // Destroy the exporter.
-            lExporter->Destroy();
         }
-        delete[] lNewFileName;
+        
+        // Destroy the exporter.
+        lExporter->Destroy();
+        
+        
     }
     else
     {
@@ -118,6 +194,7 @@ int main(int argc, char** argv)
     // using the FBX SDK manager and that haven't been explicitly destroyed
     // are automatically destroyed at the same time.
     DestroySdkObjects(lSdkManager, lResult);
+    
     return 0;
 }
 

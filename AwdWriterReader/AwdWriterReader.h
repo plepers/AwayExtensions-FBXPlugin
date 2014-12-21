@@ -22,9 +22,8 @@
 #include "AwdWriter.h"
 #include "AwdReader.h"
 
-#define PLUGIN_NAME         "Awd_Writer_Reader"
-#define PLUGIN_VERSION		"1.0"
-#define PLUGIN_EXTENSION	"AWD"
+#include "ExporterConfig.h"
+
 
 FbxWriter* CreateAwdWriter(FbxManager& pManager, FbxExporter& pExporter, int pSubID, int pPluginID);
 void* GetAwdWriterInfo(FbxWriter::EInfoRequest pRequest, int pId);
