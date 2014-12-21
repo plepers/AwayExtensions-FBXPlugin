@@ -42,7 +42,10 @@ int main(int argc, char** argv)
     std::string output;
     std::string compression;
     AWD_compression compressionEnum;
-    bool precision;
+    bool attrPrecision = false;
+    bool geomPrecision = false;
+    bool matrPrecision = false;
+    bool propPrecision = false;
     bool embedTextures;
     bool exportEmpty;
     double sceneScale;
@@ -64,37 +67,47 @@ int main(int argc, char** argv)
         cmd.add( outputArg );
         cmd.add( scaleArg );
         
-        TCLAP::SwitchArg precisionSwitch("p","precision","export with double precision", cmd, false);
+        TCLAP::SwitchArg precisionSwitch("W","precision","export all datas with double precision", cmd, false);
+        TCLAP::SwitchArg wideAttrSwitch("","wa","export attributes with double precision", cmd, false);
+        TCLAP::SwitchArg wideGeomSwitch("","wg","export geometries with double precision", cmd, false);
+        TCLAP::SwitchArg wideMatrSwitch("","wm","export matrices with double precision", cmd, false);
+        TCLAP::SwitchArg widePropSwitch("","wp","export properties with double precision", cmd, false);
+        
+        TCLAP::SwitchArg compressLzma("","lzma","compress output using LZMA", false);
+        TCLAP::SwitchArg compressDefl("","deflate","compress output using deflate", false);
+        
+        
         TCLAP::SwitchArg embedTexSwitch("t","textures","embed textures", cmd, false);
         TCLAP::SwitchArg exportEmptySwitch("e","empty","export empty containers", cmd, true);
         
-        TCLAP::ValueArg<std::string> compressArg( "c","compression","compression type", false, "uncompressed", "compression < uncompressed | lzma | deflate >");
         
         
-        cmd.add( compressArg );
+        cmd.xorAdd( compressLzma, compressDefl );
+        
         
         cmd.parse( argc, argv );
         
         // Get the value parsed by each arg.
-        input = inputArg.getValue();
-        output = outputArg.getValue();
-        compression = compressArg.getValue();
-        precision = precisionSwitch.getValue();
-        embedTextures = embedTexSwitch.getValue();
-        exportEmpty = exportEmptySwitch.getValue();
-        sceneScale = scaleArg.getValue();
+        input           = inputArg.getValue();
+        output          = outputArg.getValue();
+        embedTextures   = embedTexSwitch.getValue();
+        exportEmpty     = exportEmptySwitch.getValue();
+        sceneScale      = scaleArg.getValue();
+        
+        attrPrecision   = precisionSwitch.getValue() || wideAttrSwitch.getValue();
+        geomPrecision   = precisionSwitch.getValue() || wideGeomSwitch.getValue();
+        matrPrecision   = precisionSwitch.getValue() || wideMatrSwitch.getValue();
+        propPrecision   = precisionSwitch.getValue() || widePropSwitch.getValue();
         
         // Do what you intend.
         std::cout << "input : " << input << std::endl;
         
-        if( compression == "uncompressed" ) {
-            compressionEnum = UNCOMPRESSED;
-        } else if( compression == "lzma" ){
+        if( compressLzma.getValue() ) {
             compressionEnum = LZMA;
-        } else if( compression != "deflate" ){
+        } else if( compressDefl.getValue() ){
             compressionEnum = DEFLATE;
         } else {
-            throw("Unsupported compression (-c) argument, should be < uncompressed | lzma | deflate >");
+            compressionEnum = UNCOMPRESSED;
         }
         
         
@@ -105,9 +118,6 @@ int main(int argc, char** argv)
         std::cerr << "error: " << e.error() << " for arg " << e.argId() << std::endl;
         return 1;
     }
-    
-    
-    
     
     
     
@@ -154,10 +164,10 @@ int main(int argc, char** argv)
         
         Settings *settings = new Settings( ioSettings );
         settings->set_compression(  compressionEnum);
-        settings->set_wide_attribs( precision);
-        settings->set_wide_geoms(   precision);
-        settings->set_wide_matrix(  precision);
-        settings->set_wide_props(   precision);
+        settings->set_wide_attribs( attrPrecision);
+        settings->set_wide_geoms(   geomPrecision);
+        settings->set_wide_matrix(  matrPrecision);
+        settings->set_wide_props(   propPrecision);
         settings->set_embed_textures(embedTextures);
         settings->set_export_empty( exportEmpty );
         settings->set_scale(        sceneScale );
