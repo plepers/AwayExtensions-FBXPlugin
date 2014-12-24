@@ -149,6 +149,7 @@ void GeomExporter::doExport(FbxObject* pObject){
     mHasVC       = pMesh->GetElementVertexColorCount() > 0;
     
     FbxGeometryElement::EMappingMode lMappingMode = FbxGeometryElement::eNone;
+    FbxGeometryElement::EMappingMode vcMappingMode = FbxGeometryElement::eNone;
     
     if (mHasNormal)
     {
@@ -200,18 +201,24 @@ void GeomExporter::doExport(FbxObject* pObject){
     }
     if (mHasVC)
     {
+//        FBXSDK_printf("    hasVC channel \n"  );
         lMappingMode = pMesh->GetElementVertexColor(0)->GetMappingMode();
+        vcMappingMode = lMappingMode;
+        
         if (lMappingMode == FbxGeometryElement::eNone)
         {
+//            FBXSDK_printf("       ... but no channel mapping\n" );
             mHasVC = false;
         }
-        if (mHasVC && lMappingMode != FbxGeometryElement::eByControlPoint)
+        if (mHasVC && lMappingMode != FbxGeometryElement::eByControlPoint )
         {
-            // Vertex Color seem to can't be stored per vertex.
-            mHasVC = false;
+            
+//            FBXSDK_printf("       ... but not y ctrl pt %i \n", mAllByControlPoint );
             mAllByControlPoint = false;
         }
     }
+
+//    FBXSDK_printf("    hasVC : %i \n" , mHasVC );
     
     
     // Allocate the array memory, by control point or by polygon vertex.
@@ -225,7 +232,7 @@ void GeomExporter::doExport(FbxObject* pObject){
     
     
     
-    FBXSDK_printf("             HAS TGT (%i) %i \n", mHasTangent , pMesh->GetElementTangentCount());
+    //FBXSDK_printf("             HAS TGT (%i) %i \n", mHasTangent , pMesh->GetElementTangentCount());
     
     
     awd_float64 * lNormals = NULL;
@@ -277,13 +284,20 @@ void GeomExporter::doExport(FbxObject* pObject){
     FbxVector2 lCurrentUV;
     FbxColor   lCurrentVC;
     
+    
+    const FbxGeometryElementVertexColor *	lVCElement 		= NULL;
+    if (mHasVC)
+    {
+        lVCElement = pMesh->GetElementVertexColor(0);
+    }
+    
     if (mAllByControlPoint)
     {
         const FbxGeometryElementNormal *        lNormalElement  = NULL;
         const FbxGeometryElementTangent *       lTangentElement = NULL;
         const FbxGeometryElementUV *            lUVElement      = NULL;
         const FbxGeometryElementUV *            lUV2Element     = NULL;
-        const FbxGeometryElementVertexColor *   lVCElement     = NULL;
+        
         
         if (mHasNormal)
         {
@@ -301,10 +315,7 @@ void GeomExporter::doExport(FbxObject* pObject){
         {
             lUV2Element = pMesh->GetElementUV(1);
         }
-        if (mHasVC)
-        {
-            lVCElement = pMesh->GetElementVertexColor(0);
-        }
+        
         
         for (int lIndex = 0; lIndex < lPolygonVertexCount; ++lIndex)
         {
@@ -384,6 +395,25 @@ void GeomExporter::doExport(FbxObject* pObject){
     int lVertexCount = 0;
     
     
+    
+    // test
+    
+//    if( mHasVC){
+//        
+//        int c = lVCElement->GetDirectArray().GetCount();
+//        FBXSDK_printf("num  vc layers  %i \n",pMesh->GetElementVertexColorCount());
+//        for (int i = 0; i < c; i++) {
+//            FBXSDK_printf(" vc  %i -- %f \n", i, lVCElement->GetDirectArray().GetAt(i).mRed );
+//        }
+//        c = lVCElement->GetIndexArray().GetCount();
+//        for (int i = 0; i < c; i++) {
+//            FBXSDK_printf(" XX  %i -- %i \n", i, lVCElement->GetIndexArray().GetAt(i) );
+//        }
+//    }
+    
+    
+    
+    
     for (int lPolygonIndex = 0; lPolygonIndex < lPolygonCount; ++lPolygonIndex)
     {
         // The material for current face.
@@ -400,6 +430,7 @@ void GeomExporter::doExport(FbxObject* pObject){
         {
             const int lControlPointIndex = pMesh->GetPolygonVertex(lPolygonIndex, lVerticeIndex);
             
+            
             if (mAllByControlPoint)
             {
                 lIndices[lIndexOffset + lVerticeIndex] = static_cast<unsigned int>(lControlPointIndex);
@@ -414,6 +445,8 @@ void GeomExporter::doExport(FbxObject* pObject){
                 lVertices[lVertexCount * 3 + 0] = lCurrentVertex[0];
                 lVertices[lVertexCount * 3 + 1] = lCurrentVertex[1];
                 lVertices[lVertexCount * 3 + 2] = lCurrentVertex[2];
+                
+                //FBXSDK_printf(" pt  %f %f,%f \n", lCurrentVertex[0], lCurrentVertex[1], lCurrentVertex[2] );
                 
                 if (mHasNormal)
                 {
@@ -444,6 +477,22 @@ void GeomExporter::doExport(FbxObject* pObject){
                     pMesh->GetPolygonVertexUV(lPolygonIndex, lVerticeIndex, lUV2Name, lCurrentUV, lUnmappedUV);
                     lUV2s[lVertexCount * 2 + 0] = lCurrentUV[0];
                     lUV2s[lVertexCount * 2 + 1] = lCurrentUV[1];
+                }
+                
+                if (mHasVC)
+                {
+                    int id = lVertexCount;
+                    if( lVCElement->GetReferenceMode() == FbxGeometryElement::eIndexToDirect ) {
+                        id = lVCElement->GetIndexArray().GetAt(id);
+                    }
+                    
+                    lCurrentVC = lVCElement->GetDirectArray().GetAt(id);
+//                    
+//                    FBXSDK_printf(" not by ctrl pt %i %i %i \n %f %f,%f \n", id, lControlPointIndex, lVCElement->GetDirectArray().GetCount(), lCurrentVC.mRed, lCurrentVC.mGreen, lCurrentVC.mBlue );
+                    
+                    lVCs[lVertexCount * 3 + 0] = lCurrentVC.mRed;
+                    lVCs[lVertexCount * 3 + 1] = lCurrentVC.mGreen;
+                    lVCs[lVertexCount * 3 + 2] = lCurrentVC.mBlue;
                 }
             }
             ++lVertexCount;
@@ -585,16 +634,16 @@ void GeomExporter::doExport(FbxObject* pObject){
                     
                     if (mHasTangent)
                     {
-                        tTangents[lsgNumVertices * 3 + 0] = tTangents[lCurrentIndex * 3 + 0];
-                        tTangents[lsgNumVertices * 3 + 1] = tTangents[lCurrentIndex * 3 + 1];
-                        tTangents[lsgNumVertices * 3 + 2] = tTangents[lCurrentIndex * 3 + 2];
+                        tTangents[lsgNumVertices * 3 + 0] = lTangents[lCurrentIndex * 3 + 0];
+                        tTangents[lsgNumVertices * 3 + 1] = lTangents[lCurrentIndex * 3 + 1];
+                        tTangents[lsgNumVertices * 3 + 2] = lTangents[lCurrentIndex * 3 + 2];
                     }
                     
                     if (mHasVC)
                     {
-                        tVCs[lsgNumVertices * 3 + 0] = tVCs[lCurrentIndex * 3 + 0];
-                        tVCs[lsgNumVertices * 3 + 1] = tVCs[lCurrentIndex * 3 + 1];
-                        tVCs[lsgNumVertices * 3 + 2] = tVCs[lCurrentIndex * 3 + 2];
+                        tVCs[lsgNumVertices * 3 + 0] = lVCs[lCurrentIndex * 3 + 0];
+                        tVCs[lsgNumVertices * 3 + 1] = lVCs[lCurrentIndex * 3 + 1];
+                        tVCs[lsgNumVertices * 3 + 2] = lVCs[lCurrentIndex * 3 + 2];
                     }
                     
                     if (mHasUV)
@@ -627,7 +676,7 @@ void GeomExporter::doExport(FbxObject* pObject){
             // allocate SubMesh data, since we know exact number
             // of vertices needed per sub geoms
             //
-            FBXSDK_printf("Geometry - create submesh (%i), num verts : %i \n", lsubIndex, lsgNumVertices );
+//            FBXSDK_printf("Geometry - create submesh (%i), num verts : %i \n", lsubIndex, lsgNumVertices );
             
             SubMeshData *data = new SubMeshData();
             mSubMeshes[lsubIndex]->data = data;
@@ -773,10 +822,9 @@ void GeomExporter::doExport(FbxObject* pObject){
     AWD_field_type precision_geo = mContext->GetSettings()->get_geoms_type();
     
     AWDTriGeom* geom = new AWDTriGeom( NULL, 0 );
-    AwdUtils::CopyNodeName( pMesh, geom );
+    AwdUtils::CopyNodeName( pObject, geom );
     
     for ( lsubIndex = 0; lsubIndex<mSubMeshes.GetCount(); lsubIndex++) {
-        FBXSDK_printf("    submesh num tris : %i\n",mSubMeshes[lsubIndex]->TriangleCount );
         if( mSubMeshes[lsubIndex]->TriangleCount > 0 ) {
             
             
@@ -900,8 +948,6 @@ void Collapser::collapse()
     
     int numStreams = mStreams.GetCount();
     
-    
-    FBXSDK_printf("start collapse, num verts : %i \n", mNumVertices );
     
     unsigned int lCurrent = 0;
     unsigned int lCompare = 0;

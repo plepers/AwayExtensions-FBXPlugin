@@ -71,7 +71,6 @@ void MaterialExporter::getMaterialProperty(const FbxSurfaceMaterial * pMaterial,
     {
         const int lTextureCount = lProperty.GetSrcObjectCount<FbxFileTexture>();
         
-        FBXSDK_printf("   Material texture count : %s -- %i\n", pPropertyName, lTextureCount );
         if (lTextureCount)
         {
             FbxFileTexture* lTexture = lProperty.GetSrcObject<FbxFileTexture>();
@@ -97,11 +96,9 @@ void MaterialExporter::doExport(FbxObject *pObj )
     const char* name = lMat->GetName();
     
     
-    FBXSDK_printf("Export Material  %s\n", name );
     
     AWDMaterial *awdMat = new AWDMaterial( name, static_cast<unsigned short>(strlen(name)) );
     
-    FBXSDK_printf("  material shading model : %s\n", lMat->ShadingModel.Get().Buffer() );
     
     
     
@@ -157,7 +154,6 @@ void MaterialExporter::doExport(FbxObject *pObj )
     
     if( mDiffuse.mTexture || mAmbient.mTexture || mSpecular.mTexture )
     {
-        FBXSDK_printf("  material has textures");
         TextureExporter *texExporter = new TextureExporter();
         texExporter->setup( mContext, mExporters );
         

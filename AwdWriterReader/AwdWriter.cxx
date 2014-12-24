@@ -127,7 +127,8 @@ bool AwdWriter::PreprocessScene( FbxScene& pScene )
 //    axis->ConvertScene( &pScene );
     
     FbxAxisSystem::MayaYUp.ConvertScene( &pScene );
-//    FbxAxisSystem::DirectX.ConvertScene( &pScene );
+    // FbxAxisSystem::Max.ConvertScene( &pScene );
+    //FbxAxisSystem::DirectX.ConvertScene( &pScene );
     
     
     FbxIOSettings* s = GetIOSettings();
