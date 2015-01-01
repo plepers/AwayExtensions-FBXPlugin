@@ -141,12 +141,14 @@ void GeomExporter::doExport(FbxObject* pObject){
     // If normal or UV is by polygon vertex, record all vertex attributes by polygon vertex.
     // Here, all submeshes share the same VBOs, we will split them later
     // after a "collapsing" pass
+
     
-    mHasNormal   = pMesh->GetElementNormalCount() > 0;
-    mHasTangent  = pMesh->GetElementTangentCount() > 0;
-    mHasUV       = pMesh->GetElementUVCount() > 0;
-    mHasUV2      = pMesh->GetElementUVCount() > 1;
-    mHasVC       = pMesh->GetElementVertexColorCount() > 0;
+    mHasNormal   = mContext->GetSettings()->get_export_geom_nrm() && pMesh->GetElementNormalCount() > 0;
+    mHasTangent  = mContext->GetSettings()->get_export_geom_tgt() && pMesh->GetElementTangentCount() > 0;
+    mHasUV       = mContext->GetSettings()->get_export_geom_uv () && pMesh->GetElementUVCount() > 0;
+    mHasUV2      = mContext->GetSettings()->get_export_geom_uv2() && pMesh->GetElementUVCount() > 1;
+    mHasVC       = mContext->GetSettings()->get_export_geom_clr() && pMesh->GetElementVertexColorCount() > 0;
+
     
     FbxGeometryElement::EMappingMode lMappingMode = FbxGeometryElement::eNone;
     FbxGeometryElement::EMappingMode vcMappingMode = FbxGeometryElement::eNone;

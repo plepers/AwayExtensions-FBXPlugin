@@ -19,10 +19,17 @@
 #define WIDE_GEOMS          "precision_geo"
 #define WIDE_PROPS          "precision_props"
 #define WIDE_ATTIBS         "precision_attr"
+
 #define EXPORT_SCALE        "export_scale"
 #define AWD_COMPRESSION     "compression"
 #define EXPORT_EMPTY        "export_empty"
 #define SPLIT_BY_ROOT       "split_by_root"
+
+#define EXPORT_GEOM_UV      "export_geom_uv"
+#define EXPORT_GEOM_UV2     "export_geom_uv2"
+#define EXPORT_GEOM_NRM     "export_geom_normal"
+#define EXPORT_GEOM_TGT     "export_geom_tangent"
+#define EXPORT_GEOM_CLR     "export_geom_color"
 
 
 #define AWD_OPTION_GROUP EXP_ADV_OPT_GRP
@@ -49,7 +56,16 @@ public:
     void set_split_by_root  ( bool );
     void set_embed_textures ( bool );
     void set_scale          ( double );
+    
+    void set_export_geom_uv ( bool );
+    void set_export_geom_uv2( bool );
+    void set_export_geom_nrm( bool );
+    void set_export_geom_tgt( bool );
+    void set_export_geom_clr( bool );
+    
     void set_compression    ( AWD_compression );
+    
+    
     
     bool get_wide_matrix    ();
     bool get_wide_geoms     ();
@@ -59,7 +75,16 @@ public:
     bool get_split_by_root  ();
     bool get_embed_textures ();
     double get_scale        ();
+    
+    bool get_export_geom_uv ();
+    bool get_export_geom_uv2 ();
+    bool get_export_geom_nrm ();
+    bool get_export_geom_tgt ();
+    bool get_export_geom_clr ();
+    
     AWD_compression get_compression();
+    
+    
     
     AWD_field_type get_geoms_type();
     
@@ -77,6 +102,11 @@ private:
     static FbxProperty split_by_root_property(FbxIOSettings *pIOS);
     static FbxProperty scale_property        (FbxIOSettings *pIOS);
     static FbxProperty compression_property  (FbxIOSettings *pIOS);
+    static FbxProperty geom_uv               (FbxIOSettings *pIOS);
+    static FbxProperty geom_uv2              (FbxIOSettings *pIOS);
+    static FbxProperty geom_nrm              (FbxIOSettings *pIOS);
+    static FbxProperty geom_tgt              (FbxIOSettings *pIOS);
+    static FbxProperty geom_clr              (FbxIOSettings *pIOS);
     
 };
 

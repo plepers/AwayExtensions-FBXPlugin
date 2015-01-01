@@ -10,6 +10,12 @@ const bool  default_export_empty    = true;
 const bool  default_split_by_root   = false;
 const float default_scale           = 1.0;
 
+const bool  default_geom_uv         = true;
+const bool  default_geom_uv2        = true;
+const bool  default_geom_normal     = true;
+const bool  default_geom_tangent    = true;
+const bool  default_geom_color      = false;
+
 
 Settings::Settings( FbxIOSettings* pIOSettings )
 {
@@ -38,9 +44,6 @@ void Settings::FillDefaultValues( FbxIOSettings *pIOS ){
     if( IOPluginGroup.IsValid() )
     {
 
-
-
-
         if( ! wide_matrix_property( pIOS ).IsValid() ) {
             pIOS->AddProperty(IOPluginGroup, WIDE_MATRIX ,       FbxBoolDT,  "Wide Matrix",  &default_precision_mtx );
         }
@@ -62,6 +65,22 @@ void Settings::FillDefaultValues( FbxIOSettings *pIOS ){
         if( ! scale_property( pIOS ).IsValid() ) {
             pIOS->AddProperty(IOPluginGroup, EXPORT_SCALE,       FbxFloatDT, "Scene Scale",  &default_scale );
         }
+        if( ! geom_uv( pIOS ).IsValid() ) {
+            pIOS->AddProperty(IOPluginGroup, EXPORT_GEOM_UV,     FbxBoolDT, "export UVs",           &default_geom_uv );
+        }
+        if( ! geom_uv2( pIOS ).IsValid() ) {
+            pIOS->AddProperty(IOPluginGroup, EXPORT_GEOM_UV2,    FbxBoolDT, "export secondary UVs", &default_geom_uv2 );
+        }
+        if( ! geom_nrm( pIOS ).IsValid() ) {
+            pIOS->AddProperty(IOPluginGroup, EXPORT_GEOM_NRM,    FbxBoolDT, "export normals",       &default_geom_normal );
+        }
+        if( ! geom_tgt( pIOS ).IsValid() ) {
+            pIOS->AddProperty(IOPluginGroup, EXPORT_GEOM_TGT,    FbxBoolDT, "export tangents",      &default_geom_tangent );
+        }
+        if( ! geom_clr( pIOS ).IsValid() ) {
+            pIOS->AddProperty(IOPluginGroup, EXPORT_GEOM_CLR,    FbxBoolDT, "export vertex colors", &default_geom_color );
+        }
+        
         if( ! compression_property( pIOS ).IsValid() ) {
             FbxProperty compression = pIOS->AddProperty(IOPluginGroup, AWD_COMPRESSION,    FbxEnumDT, "Compression",  AWD_COMPRESSION );
             compression.AddEnumValue( "uncompressed" );
@@ -113,6 +132,12 @@ bool Settings::get_embed_textures(){
     return mIOSettings->GetBoolProp( EXP_EMBEDTEXTURE, false );
 }
 
+bool Settings::get_export_geom_uv  (){ return mIOSettings->GetBoolProp( PROP_ID( EXPORT_GEOM_UV  ), default_geom_uv      ); }
+bool Settings::get_export_geom_uv2 (){ return mIOSettings->GetBoolProp( PROP_ID( EXPORT_GEOM_UV2 ), default_geom_uv2     ); }
+bool Settings::get_export_geom_nrm (){ return mIOSettings->GetBoolProp( PROP_ID( EXPORT_GEOM_NRM ), default_geom_normal  ); }
+bool Settings::get_export_geom_tgt (){ return mIOSettings->GetBoolProp( PROP_ID( EXPORT_GEOM_TGT ), default_geom_tangent ); }
+bool Settings::get_export_geom_clr (){ return mIOSettings->GetBoolProp( PROP_ID( EXPORT_GEOM_CLR ), default_geom_color   ); }
+
 
 void Settings::set_wide_matrix( bool value){
     mIOSettings->SetBoolProp( PROP_ID( WIDE_MATRIX ), value );
@@ -145,6 +170,12 @@ void Settings::set_scale( double value){
 void Settings::set_embed_textures( bool value){
     mIOSettings->SetBoolProp( EXP_EMBEDTEXTURE, value );
 }
+
+void Settings::set_export_geom_uv ( bool value){ mIOSettings->SetBoolProp( PROP_ID( EXPORT_GEOM_UV  ), value ); }
+void Settings::set_export_geom_uv2( bool value){ mIOSettings->SetBoolProp( PROP_ID( EXPORT_GEOM_UV2 ), value ); }
+void Settings::set_export_geom_nrm( bool value){ mIOSettings->SetBoolProp( PROP_ID( EXPORT_GEOM_NRM ), value ); }
+void Settings::set_export_geom_tgt( bool value){ mIOSettings->SetBoolProp( PROP_ID( EXPORT_GEOM_TGT ), value ); }
+void Settings::set_export_geom_clr( bool value){ mIOSettings->SetBoolProp( PROP_ID( EXPORT_GEOM_CLR ), value ); }
 
 
 
@@ -189,6 +220,14 @@ FbxProperty Settings::scale_property(FbxIOSettings* pIOS) {
 FbxProperty Settings::compression_property(FbxIOSettings* pIOS) {
     return pIOS->GetProperty( PROP_ID( AWD_COMPRESSION ) );
 }
+
+
+FbxProperty Settings::geom_uv (FbxIOSettings* pIOS) { return pIOS->GetProperty( PROP_ID( EXPORT_GEOM_UV  ) ); }
+FbxProperty Settings::geom_uv2(FbxIOSettings* pIOS) { return pIOS->GetProperty( PROP_ID( EXPORT_GEOM_UV2 ) ); }
+FbxProperty Settings::geom_nrm(FbxIOSettings* pIOS) { return pIOS->GetProperty( PROP_ID( EXPORT_GEOM_NRM ) ); }
+FbxProperty Settings::geom_tgt(FbxIOSettings* pIOS) { return pIOS->GetProperty( PROP_ID( EXPORT_GEOM_TGT ) ); }
+FbxProperty Settings::geom_clr(FbxIOSettings* pIOS) { return pIOS->GetProperty( PROP_ID( EXPORT_GEOM_CLR ) ); }
+
 
 
 AWD_compression Settings::get_compression(){

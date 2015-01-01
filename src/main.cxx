@@ -1,30 +1,9 @@
 /****************************************************************************************
 
-   Copyright (C) 2014 Autodesk, Inc.
-   All rights reserved.
 
-   Use of this software is subject to the terms of the Autodesk license agreement
-   provided at the time of installation or download, or which otherwise accompanies
-   this software in either electronic or hard copy form.
 
 ****************************************************************************************/
 
-/////////////////////////////////////////////////////////////////////////
-//
-// This program converts any file in a format supported by the FBX SDK
-// into DAE, FBX, 3DS, OBJ and DXF files.
-//
-// Steps:
-// 1. Initialize SDK objects.
-// 2. Load a file(fbx, obj,...) to a FBX scene.
-// 3. Create a exporter.
-// 4. Retrieve the writer ID according to the description of file format.
-// 5. Initialize exporter with specified file format
-// 6. Export.
-// 7. Destroy the exporter
-// 8. Destroy the FBX SDK manager
-//
-/////////////////////////////////////////////////////////////////////////
 
 #include <fbxsdk.h>
 
@@ -33,6 +12,14 @@
 #include "Settings.h"
 
 #include <tclap/CmdLine.h>
+#include <tclap/ArgException.h>
+
+#define G_INCLUDES_UV  "uv"
+#define G_INCLUDES_UV2 "uv2"
+#define G_INCLUDES_NRM "normal"
+#define G_INCLUDES_TGT "tangent"
+#define G_INCLUDES_CLR "color"
+
 
 
 int main(int argc, char** argv)
@@ -42,13 +29,22 @@ int main(int argc, char** argv)
     std::string output;
     std::string compression;
     AWD_compression compressionEnum;
-    bool attrPrecision = false;
-    bool geomPrecision = false;
-    bool matrPrecision = false;
-    bool propPrecision = false;
+    
+    bool attrPrecision  = false;
+    bool geomPrecision  = false;
+    bool matrPrecision  = false;
+    bool propPrecision  = false;
+    
+    bool exportUv       = true;
+    bool exportUv2      = true;
+    bool exportNormal   = true;
+    bool exportTangent  = true;
+    bool exportColor    = true;
+    
     bool embedTextures;
     bool exportEmpty;
     double sceneScale;
+    
     
     
     // Parse cmdlne args using tclap
@@ -67,6 +63,7 @@ int main(int argc, char** argv)
         cmd.add( outputArg );
         cmd.add( scaleArg );
         
+        
         // precision options
         //
         TCLAP::SwitchArg precisionSwitch("W","precision","export all datas with double precision", cmd, false);
@@ -75,10 +72,31 @@ int main(int argc, char** argv)
         TCLAP::SwitchArg wideMatrSwitch("","wm","export matrices with double precision", cmd, false);
         TCLAP::SwitchArg widePropSwitch("","wp","export properties with double precision", cmd, false);
         
+        
         // misc options
         //
         TCLAP::SwitchArg embedTexSwitch("t","textures","embed textures", cmd, false);
         TCLAP::SwitchArg exportEmptySwitch("e","empty","export empty containers", cmd, true);
+        
+        
+        // geom streams options
+        //
+        
+        std::vector<std::string> vdataEnums;
+        vdataEnums.push_back( "none" );
+        vdataEnums.push_back( G_INCLUDES_UV );
+        vdataEnums.push_back( G_INCLUDES_UV2 );
+        vdataEnums.push_back( G_INCLUDES_NRM );
+        vdataEnums.push_back( G_INCLUDES_TGT );
+        vdataEnums.push_back( G_INCLUDES_CLR );
+        TCLAP::ValuesConstraint<std::string> allowedVdata( vdataEnums );
+        
+        TCLAP::MultiArg<std::string> streamIncArg("g","geom","include given vertex data to geometry", false, &allowedVdata );
+        TCLAP::MultiArg<std::string> streamExcArg("G","GEOM","exclude given vertex data from geometry", false, &allowedVdata );
+        
+        cmd.add( streamIncArg );
+        cmd.add( streamExcArg );
+        
         
         //compression options
         //
@@ -108,7 +126,64 @@ int main(int argc, char** argv)
         matrPrecision   = precisionSwitch.getValue() || wideMatrSwitch.getValue();
         propPrecision   = precisionSwitch.getValue() || widePropSwitch.getValue();
         
-        // Do what you intend.
+        // stream list
+        //
+        std::vector<std::string> streamList;
+        bool streamDefault = false;
+        
+        if( streamExcArg.isSet() && streamIncArg.isSet() ){
+            
+            throw( TCLAP::CmdLineParseException("-g and -G can't be both set.", "-g / -G" ) );
+        }
+        
+        if( streamIncArg.isSet() )
+        {
+            streamDefault = false;
+            streamList = streamIncArg.getValue();
+        }
+        else if( streamExcArg.isSet() )
+        {
+            streamDefault = true;
+            streamList = streamExcArg.getValue();
+        }
+        
+        if( streamExcArg.isSet() || streamIncArg.isSet() ){
+            exportUv = exportUv2 = exportNormal  = exportTangent = exportColor = streamDefault;
+            
+            for(std::vector<std::string>::iterator it = streamList.begin(); it != streamList.end(); ++it)
+            {
+                if( *it == G_INCLUDES_UV )
+                {
+                    exportUv = !streamDefault;
+                }
+                else if( *it == G_INCLUDES_UV2 )
+                {
+                    exportUv2 = !streamDefault;
+                }
+                else if( *it == G_INCLUDES_NRM )
+                {
+                    exportNormal = !streamDefault;
+                }
+                else if( *it == G_INCLUDES_TGT )
+                {
+                    exportTangent = !streamDefault;
+                }
+                else if( *it == G_INCLUDES_CLR )
+                {
+                    exportColor = !streamDefault;
+                }
+            }
+        }
+        
+        
+        FBXSDK_printf("Include in geom : \n");
+        if( exportUv ) FBXSDK_printf("   uv\n");
+        if( exportUv2 ) FBXSDK_printf("   uv2\n");
+        if( exportNormal ) FBXSDK_printf("   normals\n");
+        if( exportTangent ) FBXSDK_printf("   tangents\n");
+        if( exportColor ) FBXSDK_printf("   colors\n");
+        
+        
         std::cout << "input : " << input << std::endl;
         
         if( compression == "uncompressed" ) {
@@ -174,14 +249,20 @@ int main(int argc, char** argv)
         FbxIOSettings* ioSettings = lSdkManager->GetIOSettings();
         
         Settings *settings = new Settings( ioSettings );
-        settings->set_compression(  compressionEnum);
-        settings->set_wide_attribs( attrPrecision);
-        settings->set_wide_geoms(   geomPrecision);
-        settings->set_wide_matrix(  matrPrecision);
-        settings->set_wide_props(   propPrecision);
-        settings->set_embed_textures(embedTextures);
-        settings->set_export_empty( exportEmpty );
-        settings->set_scale(        sceneScale );
+        settings->set_compression(      compressionEnum);
+        settings->set_wide_attribs(     attrPrecision);
+        settings->set_wide_geoms(       geomPrecision);
+        settings->set_wide_matrix(      matrPrecision);
+        settings->set_wide_props(       propPrecision);
+        settings->set_embed_textures(   embedTextures);
+        settings->set_export_empty(     exportEmpty );
+        settings->set_scale(            sceneScale );
+        
+        settings->set_export_geom_uv (  exportUv      );
+        settings->set_export_geom_uv2(  exportUv2     );
+        settings->set_export_geom_nrm(  exportNormal  );
+        settings->set_export_geom_tgt(  exportTangent );
+        settings->set_export_geom_clr(  exportColor   );
         delete settings;
         
         // Initialize the exporter.
