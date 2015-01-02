@@ -203,24 +203,19 @@ void GeomExporter::doExport(FbxObject* pObject){
     }
     if (mHasVC)
     {
-//        FBXSDK_printf("    hasVC channel \n"  );
         lMappingMode = pMesh->GetElementVertexColor(0)->GetMappingMode();
         vcMappingMode = lMappingMode;
         
         if (lMappingMode == FbxGeometryElement::eNone)
         {
-//            FBXSDK_printf("       ... but no channel mapping\n" );
             mHasVC = false;
         }
         if (mHasVC && lMappingMode != FbxGeometryElement::eByControlPoint )
         {
-            
-//            FBXSDK_printf("       ... but not y ctrl pt %i \n", mAllByControlPoint );
             mAllByControlPoint = false;
         }
     }
 
-//    FBXSDK_printf("    hasVC : %i \n" , mHasVC );
     
     
     // Allocate the array memory, by control point or by polygon vertex.
@@ -232,9 +227,6 @@ void GeomExporter::doExport(FbxObject* pObject){
     awd_float64 * lVertices = new awd_float64[ lPolygonVertexCount * 3 ];
     unsigned int * lIndices = new unsigned int[lPolygonCount * TRIANGLE_VERTEX_COUNT];
     
-    
-    
-    //FBXSDK_printf("             HAS TGT (%i) %i \n", mHasTangent , pMesh->GetElementTangentCount());
     
     
     awd_float64 * lNormals = NULL;
@@ -438,7 +430,6 @@ void GeomExporter::doExport(FbxObject* pObject){
                 lIndices[lIndexOffset + lVerticeIndex] = static_cast<unsigned int>(lControlPointIndex);
             }
             // Populate the array with vertex attribute, if by polygon vertex.
-            // note : vertex colors can't be retreived in this case ?
             else
             {
                 lIndices[lIndexOffset + lVerticeIndex] = static_cast<unsigned int>(lVertexCount);
@@ -448,7 +439,6 @@ void GeomExporter::doExport(FbxObject* pObject){
                 lVertices[lVertexCount * 3 + 1] = lCurrentVertex[1];
                 lVertices[lVertexCount * 3 + 2] = lCurrentVertex[2];
                 
-                //FBXSDK_printf(" pt  %f %f,%f \n", lCurrentVertex[0], lCurrentVertex[1], lCurrentVertex[2] );
                 
                 if (mHasNormal)
                 {
@@ -489,8 +479,6 @@ void GeomExporter::doExport(FbxObject* pObject){
                     }
                     
                     lCurrentVC = lVCElement->GetDirectArray().GetAt(id);
-//                    
-//                    FBXSDK_printf(" not by ctrl pt %i %i %i \n %f %f,%f \n", id, lControlPointIndex, lVCElement->GetDirectArray().GetCount(), lCurrentVC.mRed, lCurrentVC.mGreen, lCurrentVC.mBlue );
                     
                     lVCs[lVertexCount * 3 + 0] = lCurrentVC.mRed;
                     lVCs[lVertexCount * 3 + 1] = lCurrentVC.mGreen;

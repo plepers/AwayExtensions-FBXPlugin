@@ -28,7 +28,7 @@ public:
         return mAwd;
     }
     
-    inline BlocksMap* GetBlocksMap() {
+    inline BlocksMap<AWDBlock>* GetBlocksMap() {
         return mBlocksMap;
     }
     
@@ -58,11 +58,13 @@ public:
     void add_vertex_anim_block  (AWDVertexAnimation *, FbxObject *pObj );
     void add_effect_method_block(AWDEffectMethod *, FbxObject *pObj );
     
+    
 private:
-    FbxManager	*mManager;
-    AWD			*mAwd;
-    BlocksMap   *mBlocksMap;
-    Settings    *mSettings;
+    FbxManager              *mManager;
+    AWD                     *mAwd;
+    BlocksMap<AWDBlock>     *mBlocksMap;
+    Settings                *mSettings;
+    
 };
 
 #endif /* defined(__FbxAwdExporter__ExportContext__) */

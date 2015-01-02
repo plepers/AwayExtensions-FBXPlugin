@@ -16,9 +16,13 @@ protected:
     {
         
         int FirstPluginID, RegistredCount;
+        
         // no reader for now
+        //
         //GetData().mSDKManager->GetIOPluginRegistry()->RegisterReader(CreateAwdReader, GetAwdReaderInfo, FirstPluginID, RegistredCount, FillAwdReaderIOSettings);
+        
         GetData().mSDKManager->GetIOPluginRegistry()->RegisterWriter(CreateAwdWriter, GetAwdWriterInfo, FirstPluginID, RegistredCount, FillAwdWriterIOSettings);
+        
         return true;
     }
 
@@ -42,13 +46,13 @@ protected:
      void FBXPluginRegistration(FbxPluginContainer& pContainer, FbxModule pModuleHandle)
  #endif
      {
-         FBXSDK_printf("AWD FBXPluginRegistration.\n");
+         
          if( sPluginInstance == NULL )
          {
              //Create the plug-in definition which contains the information about the plug-in
              FbxPluginDef sPluginDef;
-             sPluginDef.mName = "AWD plugin";
-             sPluginDef.mVersion = "1.0";
+             sPluginDef.mName = FbxAwdExporter_PLUGIN_NAME;
+             sPluginDef.mVersion = FbxAwdExporter_VERSION_STR;
 
              //Create an instance of the plug-in
              sPluginInstance = AwdWriterReaderPlugin::Create(sPluginDef, pModuleHandle);

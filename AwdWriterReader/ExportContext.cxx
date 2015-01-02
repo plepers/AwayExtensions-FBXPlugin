@@ -17,7 +17,7 @@
 ExportContext::ExportContext( FbxIOSettings* pSettings, FbxManager* pFbxMngr )
 {
     mSettings = new Settings( pSettings );
-    mBlocksMap = new BlocksMap();
+    mBlocksMap = new BlocksMap<AWDBlock>();
     mManager = pFbxMngr;
     
     BlockSettings *lBlockSettings = new BlockSettings( false, false, false, false, 1.0 );
