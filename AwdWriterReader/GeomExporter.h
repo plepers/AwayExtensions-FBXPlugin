@@ -63,6 +63,7 @@ private:
     bool mHasUV;
     bool mHasUV2;
     bool mHasVC;
+    bool mHasSkin;
     bool mAllByControlPoint;
 };
 

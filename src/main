@@ -41,7 +41,6 @@ int main(int argc, char** argv)
     bool exportNormal   = true;
     bool exportTangent  = true;
     bool exportColor    = true;
-    bool exportSkin     = true;
     
     bool embedTextures;
     bool exportEmpty;
@@ -175,10 +174,6 @@ int main(int argc, char** argv)
                 {
                     exportColor = !streamDefault;
                 }
-                else if( *it == G_INCLUDES_SKN )
-                {
-                    exportSkin = !streamDefault;
-                }
             }
         }
         
@@ -270,8 +265,6 @@ int main(int argc, char** argv)
         settings->set_export_geom_nrm(  exportNormal  );
         settings->set_export_geom_tgt(  exportTangent );
         settings->set_export_geom_clr(  exportColor   );
-        settings->set_export_geom_skn(  exportSkin    );
-
         delete settings;
         
         // Initialize the exporter.
