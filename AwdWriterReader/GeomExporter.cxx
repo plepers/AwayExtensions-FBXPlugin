@@ -635,8 +635,6 @@ void GeomExporter::doExport(FbxObject* pObject){
     
     Collapser *collapser = new Collapser( lIndices, lPolygonCount * TRIANGLE_VERTEX_COUNT, lPolygonVertexCount );
     
-    collapser->addStream( lVertices, 3 );
-    
     if( lHasNormal )
         collapser->addStream( lNormals, 3 );
     
@@ -655,6 +653,7 @@ void GeomExporter::doExport(FbxObject* pObject){
     if( lHasSkin )
         collapser->addStream( lSkinWeights, lBonesPerVertex );
     
+    collapser->addStream( lVertices, 3 );
     
     collapser->collapse();
     
