@@ -1077,8 +1077,9 @@ void GeomExporter::doExport(FbxObject* pObject){
 Collapser::Collapser(unsigned int *pIndices, unsigned int pNumIndices, unsigned int pNumVertices )
 {
     mIndices 		= pIndices;
-    mNumIndices 	= pNumIndices;
+    mNumIndices     = pNumIndices;
     mNumVertices 	= pNumVertices;
+    mVertexSize     = 0;
     
     mRemapTable = new unsigned int[mNumVertices];
 
@@ -1115,6 +1116,8 @@ void Collapser::addStream(awd_float64 *data, unsigned int csize)
     mStreams[numStreams]->csize = csize;
     mStreams[numStreams]->data = data;
     
+    mVertexSize += csize;
+    
 }
 
 //
@@ -1124,11 +1127,32 @@ void Collapser::addStream(awd_float64 *data, unsigned int csize)
 void Collapser::collapse()
 {
     
+    
     int numStreams = mStreams.GetCount();
     
     
     unsigned int lCurrent = 0;
     unsigned int lCompare = 0;
+    
+    
+    // first create an interleaved version of geometry
+    // to compare vertices in one memcmp call
+    //
+    
+    awd_float64 *interleaved = new awd_float64[mVertexSize * mNumVertices];
+    awd_float64 *ptr = interleaved;
+    
+    for ( lCurrent = 0; lCurrent < mNumVertices; lCurrent++ )
+    {
+        for ( int streamIndex = 0; streamIndex < numStreams; streamIndex++ )
+        {
+            unsigned int csize	= mStreams[streamIndex]->csize;
+            memcpy( ptr, &mStreams[streamIndex]->data[lCurrent*csize], csize * sizeof(awd_float64) );
+            ptr += csize;
+        }
+        
+    }
+    
     
     
     for ( lCurrent = 0; lCurrent < mNumVertices-1; lCurrent++ )
@@ -1144,47 +1168,29 @@ void Collapser::collapse()
         
         // compare current with all following vertices
         // -----
-        for ( lCompare = lCurrent+1; lCompare < mNumVertices; )
+        for ( lCompare = lCurrent+1; lCompare < mNumVertices; lCompare++ )
         {
             
             
-            // for current/compare we check equality of all streams / all components
-            // loop in streams then components
-            // -----
-            for ( int streamIndex = 0; streamIndex < numStreams; streamIndex++ ) {
+            if(
+               memcmp(
+                      &interleaved[lCurrent*mVertexSize],
+                      &interleaved[lCompare*mVertexSize],
+                      mVertexSize*sizeof(awd_float64)
+                      ) == 0
+               )
+            {
+                // vertices are equals
                 
-                
-                
-                unsigned int csize	= mStreams[streamIndex]->csize;
-                awd_float64 *data 	= mStreams[streamIndex]->data;
-                
-                for (unsigned int comp = 0; comp < csize; comp++) {
-                    
-                    // Todo : compare with an epsilon ?
-                    //
-                    if( data[ lCurrent*csize + comp ] != data[ lCompare*csize + comp ] ){
-                        // components are not equals
-                        // skip this vertex, go to next one
-                        // ------
-                        goto nextVert;
-                    }
-                    
-                    
-                }
-                
-                
-            }
+                mRemapTable[lCompare] = lCurrent;
+            };
             
-    		// lCompare is the same vertex than lCurrent
-            //
-            mRemapTable[lCompare] = lCurrent;
-            
-            nextVert :
-            lCompare++;
             
         }
         
     }
+    
+    free( interleaved );
     
     
     unsigned int i;
@@ -1199,7 +1205,7 @@ void Collapser::collapse()
 //        if( mRemapTable[i] == i )
 //            newLen++;
 //    }
-//    FBXSDK_printf("complete collapse, num verts : %i \n", newLen );
+//    FBXSDK_printf("complete collapse, num verts : %i vs %i \n", newLen, mNumVertices );
     
     
 }

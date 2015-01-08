@@ -81,6 +81,7 @@ private:
     };
     
     unsigned int 		mNumVertices;
+    unsigned int 		mVertexSize;
     unsigned int 		mNumIndices;
     
     
