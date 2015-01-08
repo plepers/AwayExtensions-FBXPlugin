@@ -221,6 +221,7 @@ void GeomExporter::doExport(FbxObject* pObject){
     }
     
     if( lHasSkin && !lAllByControlPoint ){
+        // todo : if it can happen, find a way to export skin by polygon vertex
         FBXSDK_printf("WARN : skin can't be exported, not by control points" );
         lHasSkin = false;
     }
@@ -372,8 +373,8 @@ void GeomExporter::doExport(FbxObject* pObject){
                     
                     if( lCurrentClusterSlot >= MAX_BONES_PER_VERTEX )
                     {
-                        // no more room for other bones
-                        // find a lower weight and replace it if found.
+                        // no more room for more bones (4 weights per vertex)
+                        // find the lower weight and replace it, if found.
                         
                         int nIndex = 0;
                         double lowerWeight = 999.0;
@@ -443,6 +444,10 @@ void GeomExporter::doExport(FbxObject* pObject){
             
         }
         
+        
+        // export vertices attributes, by control points
+        //
+        //
         
         for (int lIndex = 0; lIndex < lPolygonVertexCount; ++lIndex)
         {
@@ -540,7 +545,9 @@ void GeomExporter::doExport(FbxObject* pObject){
     
     
     
-    
+    // Loop in polygons to create indices buffer
+    // Export attributes, if not by control points
+    //
     for (int lPolygonIndex = 0; lPolygonIndex < lPolygonCount; ++lPolygonIndex)
     {
         // The material for current face.
