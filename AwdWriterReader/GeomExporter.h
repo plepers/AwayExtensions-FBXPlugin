@@ -12,9 +12,43 @@
 
 #include "NodeExporter.h"
 
+// Experimental vertex color attribute ID
 const AWD_mesh_str_type COLORS = static_cast<AWD_mesh_str_type>(11);
 
+struct SubMeshData
+{
+    SubMeshData() :
+    numVertices(0),
+    indices(NULL),
+    vertices(NULL),
+    normals(NULL),
+    uvs(NULL),
+    uvs2(NULL),
+    skinWeights(NULL),
+    skinIndices(NULL) {}
+    
+    unsigned int 	numVertices;
+    unsigned int 	*indices;
+    
+    awd_float64     *vertices;
+    awd_float64		*normals;
+    awd_float64		*tangent;
+    awd_float64		*colors;
+    awd_float64		*uvs;
+    awd_float64		*uvs2;
+    awd_float64		*skinWeights;
+    awd_uint32      *skinIndices;
+};
 
+struct SubMesh
+{
+    SubMesh() : IndexOffset(0), TriangleCount(0), data(NULL) {}
+    
+    int IndexOffset;
+    int TriangleCount;
+    SubMeshData *data;
+    
+};
 
 class GeomExporter : public NodeExporter
 {
@@ -22,48 +56,6 @@ public:
     virtual bool isHandleObject( FbxObject* );
     virtual void doExport( FbxObject* );
     
-private:
-    
-    // For every material, record the offsets in every VBO and triangle counts
-    
-    struct SubMeshData
-    {
-        SubMeshData() :
-        	numVertices(0),
-        	indices(NULL),
-        	vertices(NULL),
-        	normals(NULL),
-        	uvs(NULL) {}
-        
-        unsigned int 	numVertices;
-        unsigned int 	*indices;
-        
-        awd_float64 	*vertices;
-        awd_float64		*normals;
-        awd_float64		*tangent;
-        awd_float64		*colors;
-        awd_float64		*uvs;
-        awd_float64		*uvs2;
-    };
-    
-    struct SubMesh
-    {
-        SubMesh() : IndexOffset(0), TriangleCount(0), data(NULL) {}
-        
-        int IndexOffset;
-        int TriangleCount;
-        SubMeshData *data;
-        
-    };
-    
-    FbxArray<SubMesh*> mSubMeshes;
-    
-    bool mHasNormal;
-    bool mHasTangent;
-    bool mHasUV;
-    bool mHasUV2;
-    bool mHasVC;
-    bool mAllByControlPoint;
 };
 
 

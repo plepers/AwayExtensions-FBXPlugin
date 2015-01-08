@@ -15,6 +15,7 @@ const bool  default_geom_uv2        = true;
 const bool  default_geom_normal     = true;
 const bool  default_geom_tangent    = true;
 const bool  default_geom_color      = false;
+const bool  default_geom_skin       = true;
 
 
 Settings::Settings( FbxIOSettings* pIOSettings )
@@ -80,6 +81,9 @@ void Settings::FillDefaultValues( FbxIOSettings *pIOS ){
         if( ! geom_clr( pIOS ).IsValid() ) {
             pIOS->AddProperty(IOPluginGroup, EXPORT_GEOM_CLR,    FbxBoolDT, "export vertex colors", &default_geom_color );
         }
+        if( ! geom_skn( pIOS ).IsValid() ) {
+            pIOS->AddProperty(IOPluginGroup, EXPORT_GEOM_SKN,    FbxBoolDT, "export skin",          &default_geom_skin );
+        }
         
         if( ! compression_property( pIOS ).IsValid() ) {
             FbxProperty compression = pIOS->AddProperty(IOPluginGroup, AWD_COMPRESSION,    FbxEnumDT, "Compression",  AWD_COMPRESSION );
@@ -137,6 +141,7 @@ bool Settings::get_export_geom_uv2 (){ return mIOSettings->GetBoolProp( PROP_ID(
 bool Settings::get_export_geom_nrm (){ return mIOSettings->GetBoolProp( PROP_ID( EXPORT_GEOM_NRM ), default_geom_normal  ); }
 bool Settings::get_export_geom_tgt (){ return mIOSettings->GetBoolProp( PROP_ID( EXPORT_GEOM_TGT ), default_geom_tangent ); }
 bool Settings::get_export_geom_clr (){ return mIOSettings->GetBoolProp( PROP_ID( EXPORT_GEOM_CLR ), default_geom_color   ); }
+bool Settings::get_export_geom_skn (){ return mIOSettings->GetBoolProp( PROP_ID( EXPORT_GEOM_SKN ), default_geom_skin    ); }
 
 
 void Settings::set_wide_matrix( bool value){
@@ -176,6 +181,7 @@ void Settings::set_export_geom_uv2( bool value){ mIOSettings->SetBoolProp( PROP_
 void Settings::set_export_geom_nrm( bool value){ mIOSettings->SetBoolProp( PROP_ID( EXPORT_GEOM_NRM ), value ); }
 void Settings::set_export_geom_tgt( bool value){ mIOSettings->SetBoolProp( PROP_ID( EXPORT_GEOM_TGT ), value ); }
 void Settings::set_export_geom_clr( bool value){ mIOSettings->SetBoolProp( PROP_ID( EXPORT_GEOM_CLR ), value ); }
+void Settings::set_export_geom_skn( bool value){ mIOSettings->SetBoolProp( PROP_ID( EXPORT_GEOM_SKN ), value ); }
 
 
 
@@ -227,6 +233,7 @@ FbxProperty Settings::geom_uv2(FbxIOSettings* pIOS) { return pIOS->GetProperty( 
 FbxProperty Settings::geom_nrm(FbxIOSettings* pIOS) { return pIOS->GetProperty( PROP_ID( EXPORT_GEOM_NRM ) ); }
 FbxProperty Settings::geom_tgt(FbxIOSettings* pIOS) { return pIOS->GetProperty( PROP_ID( EXPORT_GEOM_TGT ) ); }
 FbxProperty Settings::geom_clr(FbxIOSettings* pIOS) { return pIOS->GetProperty( PROP_ID( EXPORT_GEOM_CLR ) ); }
+FbxProperty Settings::geom_skn(FbxIOSettings* pIOS) { return pIOS->GetProperty( PROP_ID( EXPORT_GEOM_SKN ) ); }
 
 
 

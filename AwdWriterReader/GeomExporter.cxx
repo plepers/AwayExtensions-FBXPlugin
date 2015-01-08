@@ -17,6 +17,7 @@
 
 
 const int TRIANGLE_VERTEX_COUNT = 3;
+const int MAX_BONES_PER_VERTEX = 4;
 
 
 
@@ -70,6 +71,7 @@ void GeomExporter::doExport(FbxObject* pObject){
     }
     
     
+    FbxArray<SubMesh*> mSubMeshes;
     
     
     // Count the polygon count of each material
@@ -141,86 +143,94 @@ void GeomExporter::doExport(FbxObject* pObject){
     // If normal or UV is by polygon vertex, record all vertex attributes by polygon vertex.
     // Here, all submeshes share the same VBOs, we will split them later
     // after a "collapsing" pass
-
     
-    mHasNormal   = mContext->GetSettings()->get_export_geom_nrm() && pMesh->GetElementNormalCount() > 0;
-    mHasTangent  = mContext->GetSettings()->get_export_geom_tgt() && pMesh->GetElementTangentCount() > 0;
-    mHasUV       = mContext->GetSettings()->get_export_geom_uv () && pMesh->GetElementUVCount() > 0;
-    mHasUV2      = mContext->GetSettings()->get_export_geom_uv2() && pMesh->GetElementUVCount() > 1;
-    mHasVC       = mContext->GetSettings()->get_export_geom_clr() && pMesh->GetElementVertexColorCount() > 0;
-
+    
+    bool lAllByControlPoint = true;
+    
+    bool lHasNormal   = mContext->GetSettings()->get_export_geom_nrm() && pMesh->GetElementNormalCount() > 0;
+    bool lHasTangent  = mContext->GetSettings()->get_export_geom_tgt() && pMesh->GetElementTangentCount() > 0;
+    bool lHasUV       = mContext->GetSettings()->get_export_geom_uv () && pMesh->GetElementUVCount() > 0;
+    bool lHasUV2      = mContext->GetSettings()->get_export_geom_uv2() && pMesh->GetElementUVCount() > 1;
+    bool lHasVC       = mContext->GetSettings()->get_export_geom_clr() && pMesh->GetElementVertexColorCount() > 0;
+    bool lHasSkin     = mContext->GetSettings()->get_export_geom_skn() && pMesh->GetDeformerCount( FbxDeformer::eSkin ) > 0;
     
     FbxGeometryElement::EMappingMode lMappingMode = FbxGeometryElement::eNone;
     FbxGeometryElement::EMappingMode vcMappingMode = FbxGeometryElement::eNone;
     
-    if (mHasNormal)
+    if (lHasNormal)
     {
         lMappingMode = pMesh->GetElementNormal(0)->GetMappingMode();
         if (lMappingMode == FbxGeometryElement::eNone)
         {
-            mHasNormal = false;
+            lHasNormal = false;
         }
-        if (mHasNormal && lMappingMode != FbxGeometryElement::eByControlPoint)
+        if (lHasNormal && lMappingMode != FbxGeometryElement::eByControlPoint)
         {
-            mAllByControlPoint = false;
+            lAllByControlPoint = false;
         }
     }
-    if (mHasTangent)
+    if (lHasTangent)
     {
         lMappingMode = pMesh->GetElementTangent(0)->GetMappingMode();
         if (lMappingMode == FbxGeometryElement::eNone)
         {
-            mHasTangent = false;
+            lHasTangent = false;
         }
-        if (mHasTangent && lMappingMode != FbxGeometryElement::eByControlPoint)
+        if (lHasTangent && lMappingMode != FbxGeometryElement::eByControlPoint)
         {
-            mAllByControlPoint = false;
+            lAllByControlPoint = false;
         }
     }
-    if (mHasUV)
+    if (lHasUV)
     {
         lMappingMode = pMesh->GetElementUV(0)->GetMappingMode();
         if (lMappingMode == FbxGeometryElement::eNone)
         {
-            mHasUV = false;
+            lHasUV = false;
         }
-        if (mHasUV && lMappingMode != FbxGeometryElement::eByControlPoint)
+        if (lHasUV && lMappingMode != FbxGeometryElement::eByControlPoint)
         {
-            mAllByControlPoint = false;
+            lAllByControlPoint = false;
         }
     }
-    if (mHasUV2)
+    if (lHasUV2)
     {
         lMappingMode = pMesh->GetElementUV(1)->GetMappingMode();
         if (lMappingMode == FbxGeometryElement::eNone)
         {
-            mHasUV2 = false;
+            lHasUV2 = false;
         }
-        if (mHasUV2 && lMappingMode != FbxGeometryElement::eByControlPoint)
+        if (lHasUV2 && lMappingMode != FbxGeometryElement::eByControlPoint)
         {
-            mAllByControlPoint = false;
+            lAllByControlPoint = false;
         }
     }
-    if (mHasVC)
+    if (lHasVC)
     {
         lMappingMode = pMesh->GetElementVertexColor(0)->GetMappingMode();
         vcMappingMode = lMappingMode;
         
         if (lMappingMode == FbxGeometryElement::eNone)
         {
-            mHasVC = false;
+            lHasVC = false;
         }
-        if (mHasVC && lMappingMode != FbxGeometryElement::eByControlPoint )
+        if (lHasVC && lMappingMode != FbxGeometryElement::eByControlPoint )
         {
-            mAllByControlPoint = false;
+            lAllByControlPoint = false;
         }
+    }
+    
+    if( lHasSkin && !lAllByControlPoint ){
+        // todo : if it can happen, find a way to export skin by polygon vertex
+        FBXSDK_printf("WARN : skin can't be exported, not by control points" );
+        lHasSkin = false;
     }
 
     
     
     // Allocate the array memory, by control point or by polygon vertex.
     int lPolygonVertexCount = pMesh->GetControlPointsCount();
-    if (!mAllByControlPoint)
+    if (!lAllByControlPoint)
     {
         lPolygonVertexCount = lPolygonCount * TRIANGLE_VERTEX_COUNT;
     }
@@ -234,35 +244,43 @@ void GeomExporter::doExport(FbxObject* pObject){
     awd_float64 * lUVs = NULL;
     awd_float64 * lUV2s = NULL;
     awd_float64 * lVCs = NULL;
+    awd_float64 * lSkinWeights = NULL;
+    awd_uint32  * lSkinIndices = NULL;
     
-    if (mHasNormal)
+    int lBonesPerVertex = MAX_BONES_PER_VERTEX;
+    
+    if (lHasNormal)
     {
         lNormals = new awd_float64[lPolygonVertexCount * 3];
     }
     
-    if (mHasTangent)
+    if (lHasTangent)
     {
         lTangents = new awd_float64[lPolygonVertexCount * 3];
     }
     
-    if (mHasVC)
+    if (lHasVC)
     {
         lVCs = new awd_float64[lPolygonVertexCount * 3];
     }
     
+    if( lHasSkin ) {
+        lSkinWeights = new awd_float64[lPolygonVertexCount * lBonesPerVertex];
+        lSkinIndices = new awd_uint32[lPolygonVertexCount * lBonesPerVertex];
+    }
     
     FbxStringList lUVNames;
     pMesh->GetUVSetNames(lUVNames);
     
     const char * lUVName = NULL;
-    if (mHasUV && lUVNames.GetCount())
+    if (lHasUV && lUVNames.GetCount())
     {
         lUVs = new awd_float64[lPolygonVertexCount * 2];
         lUVName = lUVNames[0];
     }
 
     const char * lUV2Name = NULL;
-    if (mHasUV && lUVNames.GetCount() > 1)
+    if (lHasUV && lUVNames.GetCount() > 1)
     {
         lUV2s = new awd_float64[lPolygonVertexCount * 2];
         lUV2Name = lUVNames[1];
@@ -280,12 +298,12 @@ void GeomExporter::doExport(FbxObject* pObject){
     
     
     const FbxGeometryElementVertexColor *	lVCElement 		= NULL;
-    if (mHasVC)
+    if (lHasVC)
     {
         lVCElement = pMesh->GetElementVertexColor(0);
     }
     
-    if (mAllByControlPoint)
+    if (lAllByControlPoint)
     {
         const FbxGeometryElementNormal *        lNormalElement  = NULL;
         const FbxGeometryElementTangent *       lTangentElement = NULL;
@@ -293,23 +311,143 @@ void GeomExporter::doExport(FbxObject* pObject){
         const FbxGeometryElementUV *            lUV2Element     = NULL;
         
         
-        if (mHasNormal)
+        if (lHasNormal)
         {
             lNormalElement = pMesh->GetElementNormal(0);
         }
-        if (mHasTangent)
+        if (lHasTangent)
         {
             lTangentElement = pMesh->GetElementTangent(0);
         }
-        if (mHasUV)
+        if (lHasUV)
         {
             lUVElement = pMesh->GetElementUV(0);
         }
-        if (mHasUV2)
+        if (lHasUV2)
         {
             lUV2Element = pMesh->GetElementUV(1);
         }
         
+        
+        // skin export
+        //
+        
+        if( lHasSkin )
+        {
+            FbxSkin *skin = (FbxSkin *) pMesh->GetDeformer( 0, FbxDeformer::eSkin );
+            
+            int lClusterCount = skin->GetClusterCount();
+            int lClusterIndex;
+            
+            // first find maximum number of bones per vertex
+            // for further allocations
+            //
+            char *numClusterPerVertex = new char[ lPolygonVertexCount ];
+            memset( numClusterPerVertex, 0, lPolygonVertexCount * sizeof(char) );
+            int lMaxInfluences = 0;
+            
+            for( lClusterIndex = 0; lClusterIndex != lClusterCount; ++lClusterIndex )
+            {
+                
+                FbxCluster* lCluster = skin->GetCluster( lClusterIndex );
+                
+                FbxNode* link = lCluster->GetLink();
+                FbxNodeAttribute* linkAttrib = link->GetNodeAttribute();
+                FbxNodeAttribute::EType nType = linkAttrib->GetAttributeType();
+                FbxString linkName = lCluster->GetLink()->GetName();
+                FBXSDK_printf( "link name %s \n", linkName.Buffer() );
+                
+                
+                
+                int lClusterIndicesCount = lCluster->GetControlPointIndicesCount();
+                int* lClusterVIndices = lCluster->GetControlPointIndices();
+                double* lClusterVWeights = lCluster->GetControlPointWeights();
+                int lCurrentClusterSlot;
+                
+                for(int k = 0; k < lClusterIndicesCount; k++)
+                {
+                    int lcvIndex = lClusterVIndices[k];
+                    int vindex;
+                    double lcvWeight = lClusterVWeights[k];
+                    lCurrentClusterSlot = numClusterPerVertex[lcvIndex];
+                    
+                    if( lCurrentClusterSlot >= MAX_BONES_PER_VERTEX )
+                    {
+                        // no more room for more bones (4 weights per vertex)
+                        // find the lower weight and replace it, if found.
+                        
+                        int nIndex = 0;
+                        double lowerWeight = 999.0;
+                        
+                        for( int lrep = 0; lrep < MAX_BONES_PER_VERTEX; lrep++ )
+                        {
+                            vindex = lcvIndex*MAX_BONES_PER_VERTEX + lrep;
+                            if( lSkinWeights[vindex] < lowerWeight ) {
+                                lowerWeight = lSkinWeights[vindex];
+                                nIndex = lrep;
+                            }
+                        }
+                        
+                        if( lowerWeight < lcvWeight ){
+                            vindex = lcvIndex*MAX_BONES_PER_VERTEX + nIndex;
+                            lSkinWeights[vindex] = lcvWeight;
+                            lSkinIndices[vindex] = lClusterIndex;
+                        }
+                        
+                    } else
+                    {
+                        vindex = lcvIndex*MAX_BONES_PER_VERTEX + lCurrentClusterSlot;
+                        lSkinWeights[vindex] = lcvWeight;
+                        lSkinIndices[vindex] = lClusterIndex;
+                    }
+                    
+                    
+                    if( lMaxInfluences < lCurrentClusterSlot ){
+                        lMaxInfluences = lCurrentClusterSlot;
+                    }
+                    
+                    numClusterPerVertex[lcvIndex]++;
+                }
+                
+            }
+            
+            // if max influence is lower than default num bones per vertex
+            // reallocate stream
+            //
+            
+            lMaxInfluences++;
+            
+            if( lMaxInfluences < MAX_BONES_PER_VERTEX ) {
+                
+                awd_float64 * rSkinWeights = new awd_float64[lPolygonVertexCount * lMaxInfluences];
+                awd_uint32   * rSkinIndices = new awd_uint32[lPolygonVertexCount * lMaxInfluences];
+                
+                for(int k = 0; k < lPolygonVertexCount; k++)
+                {
+                    memcpy( &rSkinWeights[k*lMaxInfluences], &lSkinWeights[k*MAX_BONES_PER_VERTEX], lMaxInfluences*sizeof(awd_float64) );
+                    memcpy( &rSkinIndices[k*lMaxInfluences], &lSkinIndices[k*MAX_BONES_PER_VERTEX], lMaxInfluences*sizeof(awd_uint32) );
+                }
+                
+                lBonesPerVertex = lMaxInfluences;
+                
+                delete lSkinIndices;
+                delete lSkinWeights;
+                
+                lSkinWeights = rSkinWeights;
+                lSkinIndices = rSkinIndices;
+ 
+            }
+            
+
+            delete numClusterPerVertex;
+            
+            
+        }
+        
+        
+        // export vertices attributes, by control points
+        //
+        //
         
         for (int lIndex = 0; lIndex < lPolygonVertexCount; ++lIndex)
         {
@@ -320,7 +458,7 @@ void GeomExporter::doExport(FbxObject* pObject){
             lVertices[lIndex * 3 + 2] = lCurrentVertex[2];
             
             // Save the normal.
-            if (mHasNormal)
+            if (lHasNormal)
             {
                 int lNormalIndex = lIndex;
                 if (lNormalElement->GetReferenceMode() == FbxLayerElement::eIndexToDirect)
@@ -334,7 +472,7 @@ void GeomExporter::doExport(FbxObject* pObject){
             }
             
             // Save the tangent.
-            if (mHasTangent)
+            if (lHasTangent)
             {
                 int lTangentIndex = lIndex;
                 if (lTangentElement->GetReferenceMode() == FbxLayerElement::eIndexToDirect)
@@ -348,7 +486,7 @@ void GeomExporter::doExport(FbxObject* pObject){
             }
             
             // Save the UV.
-            if (mHasUV)
+            if (lHasUV)
             {
                 int lUVIndex = lIndex;
                 if (lUVElement->GetReferenceMode() == FbxLayerElement::eIndexToDirect)
@@ -359,7 +497,7 @@ void GeomExporter::doExport(FbxObject* pObject){
                 lUVs[lIndex * 2 + 0] = lCurrentUV[0];
                 lUVs[lIndex * 2 + 1] = lCurrentUV[1];
             }
-            if (mHasUV2)
+            if (lHasUV2)
             {
                 int lUVIndex = lIndex;
                 if (lUV2Element->GetReferenceMode() == FbxLayerElement::eIndexToDirect)
@@ -370,7 +508,7 @@ void GeomExporter::doExport(FbxObject* pObject){
                 lUV2s[lIndex * 2 + 0] = lCurrentUV[0];
                 lUV2s[lIndex * 2 + 1] = lCurrentUV[1];
             }
-            if (mHasVC)
+            if (lHasVC)
             {
                 int lVCIndex = lIndex;
                 if (lVCElement->GetReferenceMode() == FbxLayerElement::eIndexToDirect)
@@ -392,7 +530,7 @@ void GeomExporter::doExport(FbxObject* pObject){
     
     // test
     
-//    if( mHasVC){
+//    if( lHasVC){
 //        
 //        int c = lVCElement->GetDirectArray().GetCount();
 //        FBXSDK_printf("num  vc layers  %i \n",pMesh->GetElementVertexColorCount());
@@ -407,7 +545,9 @@ void GeomExporter::doExport(FbxObject* pObject){
     
     
     
-    
+    // Loop in polygons to create indices buffer
+    // Export attributes, if not by control points
+    //
     for (int lPolygonIndex = 0; lPolygonIndex < lPolygonCount; ++lPolygonIndex)
     {
         // The material for current face.
@@ -425,7 +565,7 @@ void GeomExporter::doExport(FbxObject* pObject){
             const int lControlPointIndex = pMesh->GetPolygonVertex(lPolygonIndex, lVerticeIndex);
             
             
-            if (mAllByControlPoint)
+            if (lAllByControlPoint)
             {
                 lIndices[lIndexOffset + lVerticeIndex] = static_cast<unsigned int>(lControlPointIndex);
             }
@@ -440,7 +580,7 @@ void GeomExporter::doExport(FbxObject* pObject){
                 lVertices[lVertexCount * 3 + 2] = lCurrentVertex[2];
                 
                 
-                if (mHasNormal)
+                if (lHasNormal)
                 {
                     pMesh->GetPolygonVertexNormal(lPolygonIndex, lVerticeIndex, lCurrentNormal);
                     lNormals[lVertexCount * 3 + 0] = lCurrentNormal[0];
@@ -448,7 +588,7 @@ void GeomExporter::doExport(FbxObject* pObject){
                     lNormals[lVertexCount * 3 + 2] = lCurrentNormal[2];
                 }
                 
-                if (mHasTangent)
+                if (lHasTangent)
                 {
                     pMesh->GetPolygonVertexNormal(lPolygonIndex, lVerticeIndex, lCurrentTangent);
                     lTangents[lVertexCount * 3 + 0] = lCurrentTangent[0];
@@ -456,14 +596,14 @@ void GeomExporter::doExport(FbxObject* pObject){
                     lTangents[lVertexCount * 3 + 2] = lCurrentTangent[2];
                 }
                 
-                if (mHasUV)
+                if (lHasUV)
                 {
                     bool lUnmappedUV;
                     pMesh->GetPolygonVertexUV(lPolygonIndex, lVerticeIndex, lUVName, lCurrentUV, lUnmappedUV);
                     lUVs[lVertexCount * 2 + 0] = lCurrentUV[0];
                     lUVs[lVertexCount * 2 + 1] = lCurrentUV[1];
                 }
-                if (mHasUV2)
+                if (lHasUV2)
                 {
                     bool lUnmappedUV;
                     pMesh->GetPolygonVertexUV(lPolygonIndex, lVerticeIndex, lUV2Name, lCurrentUV, lUnmappedUV);
@@ -471,7 +611,7 @@ void GeomExporter::doExport(FbxObject* pObject){
                     lUV2s[lVertexCount * 2 + 1] = lCurrentUV[1];
                 }
                 
-                if (mHasVC)
+                if (lHasVC)
                 {
                     int id = lVertexCount;
                     if( lVCElement->GetReferenceMode() == FbxGeometryElement::eIndexToDirect ) {
@@ -489,6 +629,8 @@ void GeomExporter::doExport(FbxObject* pObject){
         }
         mSubMeshes[lMaterialIndex]->TriangleCount += 1;
     }
+    
+
 
     
     
@@ -500,23 +642,25 @@ void GeomExporter::doExport(FbxObject* pObject){
     
     Collapser *collapser = new Collapser( lIndices, lPolygonCount * TRIANGLE_VERTEX_COUNT, lPolygonVertexCount );
     
-    collapser->addStream( lVertices, 3 );
-    
-    if( mHasNormal )
+    if( lHasNormal )
         collapser->addStream( lNormals, 3 );
     
-    if( mHasTangent )
+    if( lHasTangent )
         collapser->addStream( lTangents, 3 );
     
-    if( mHasUV )
+    if( lHasUV )
         collapser->addStream( lUVs, 2 );
     
-    if( mHasUV2 )
+    if( lHasUV2 )
         collapser->addStream( lUV2s, 2 );
     
-    if( mHasVC )
+    if( lHasVC )
         collapser->addStream( lVCs, 3 );
+
+    if( lHasSkin )
+        collapser->addStream( lSkinWeights, lBonesPerVertex );
     
+    collapser->addStream( lVertices, 3 );
     
     collapser->collapse();
     
@@ -536,32 +680,39 @@ void GeomExporter::doExport(FbxObject* pObject){
     
     unsigned int *tIndices;
     
-    awd_float64 *tVertices  = new awd_float64[ lPolygonVertexCount * 3 ];
-    awd_float64 *tNormals   = NULL;
-    awd_float64 *tTangents  = NULL;
-    awd_float64 *tUVs       = NULL;
-    awd_float64 *tUV2s      = NULL;
-    awd_float64 *tVCs       = NULL;
+    awd_float64 *tVertices      = new awd_float64[ lPolygonVertexCount * 3 ];
+    awd_float64 *tNormals       = NULL;
+    awd_float64 *tTangents      = NULL;
+    awd_float64 *tUVs           = NULL;
+    awd_float64 *tUV2s          = NULL;
+    awd_float64 *tVCs           = NULL;
+    awd_float64 *tSkinWeights   = NULL;
+    awd_uint32   *tSkinIndices   = NULL;
     
-    if (mHasNormal)
+    if (lHasNormal)
     {
         tNormals = new awd_float64[lPolygonVertexCount * 3];
     }
-    if (mHasTangent)
+    if (lHasTangent)
     {
         tTangents = new awd_float64[lPolygonVertexCount * 3];
     }
-    if (mHasUV)
+    if (lHasUV)
     {
         tUVs = new awd_float64[lPolygonVertexCount * 2];
     }
-    if (mHasUV2)
+    if (lHasUV2)
     {
         tUV2s = new awd_float64[lPolygonVertexCount * 2];
     }
-    if (mHasVC)
+    if (lHasVC)
     {
         tVCs = new awd_float64[lPolygonVertexCount * 3];
+    }
+    if (lHasSkin)
+    {
+        tSkinWeights = new awd_float64[lPolygonVertexCount * lBonesPerVertex];
+        tSkinIndices = new awd_uint32[lPolygonVertexCount * lBonesPerVertex ];
     }
     
     int * tIdxMap = new int[lPolygonCount * TRIANGLE_VERTEX_COUNT];
@@ -615,36 +766,42 @@ void GeomExporter::doExport(FbxObject* pObject){
                     tVertices[lsgNumVertices * 3 + 1] = lVertices[lCurrentIndex * 3 + 1];
                     tVertices[lsgNumVertices * 3 + 2] = lVertices[lCurrentIndex * 3 + 2];
                     
-                    if (mHasNormal)
+                    if (lHasNormal)
                     {
                         tNormals[lsgNumVertices * 3 + 0] = lNormals[lCurrentIndex * 3 + 0];
                         tNormals[lsgNumVertices * 3 + 1] = lNormals[lCurrentIndex * 3 + 1];
                         tNormals[lsgNumVertices * 3 + 2] = lNormals[lCurrentIndex * 3 + 2];
                     }
                     
-                    if (mHasTangent)
+                    if (lHasTangent)
                     {
                         tTangents[lsgNumVertices * 3 + 0] = lTangents[lCurrentIndex * 3 + 0];
                         tTangents[lsgNumVertices * 3 + 1] = lTangents[lCurrentIndex * 3 + 1];
                         tTangents[lsgNumVertices * 3 + 2] = lTangents[lCurrentIndex * 3 + 2];
                     }
                     
-                    if (mHasVC)
+                    if (lHasVC)
                     {
                         tVCs[lsgNumVertices * 3 + 0] = lVCs[lCurrentIndex * 3 + 0];
                         tVCs[lsgNumVertices * 3 + 1] = lVCs[lCurrentIndex * 3 + 1];
                         tVCs[lsgNumVertices * 3 + 2] = lVCs[lCurrentIndex * 3 + 2];
                     }
                     
-                    if (mHasUV)
+                    if (lHasUV)
                     {
                         tUVs[lsgNumVertices * 2 + 0] = lUVs[lCurrentIndex * 2 + 0];
                         tUVs[lsgNumVertices * 2 + 1] = lUVs[lCurrentIndex * 2 + 1];
                     }
-                    if (mHasUV2)
+                    if (lHasUV2)
                     {
                         tUV2s[lsgNumVertices * 2 + 0] = lUV2s[lCurrentIndex * 2 + 0];
                         tUV2s[lsgNumVertices * 2 + 1] = lUV2s[lCurrentIndex * 2 + 1];
+                    }
+                    
+                    if( lHasSkin )
+                    {
+                        memcpy( &tSkinWeights[lsgNumVertices*lBonesPerVertex], &lSkinWeights[lCurrentIndex*lBonesPerVertex], lBonesPerVertex*sizeof(awd_float64) );
+                        memcpy( &tSkinIndices[lsgNumVertices*lBonesPerVertex], &lSkinIndices[lCurrentIndex*lBonesPerVertex], lBonesPerVertex*sizeof(awd_uint32) );
                     }
                     
                     // grow the number of vertices for this geom
@@ -679,29 +836,35 @@ void GeomExporter::doExport(FbxObject* pObject){
             data->vertices 	= new awd_float64[lsgNumVertices * 3];
             memcpy(data->vertices, 	tVertices, 	lsgNumVertices * 3 * sizeof( awd_float64 ) );
             
-            if (mHasNormal) {
+            if (lHasNormal) {
                 data->normals 	= new awd_float64[lsgNumVertices * 3];
                 memcpy(data->normals, 	tNormals, 	lsgNumVertices * 3 * sizeof( awd_float64 ) );
             }
             
-            if (mHasTangent) {
+            if (lHasTangent) {
                 data->tangent 	= new awd_float64[lsgNumVertices * 3];
                 memcpy(data->tangent, 	tTangents, 	lsgNumVertices * 3 * sizeof( awd_float64 ) );
             }
             
-            if (mHasVC) {
+            if (lHasVC) {
                 data->colors 	= new awd_float64[lsgNumVertices * 3];
                 memcpy(data->colors, 	tVCs, 	lsgNumVertices * 3 * sizeof( awd_float64 ) );
             }
             
-            if( mHasUV ) {
+            if( lHasUV ) {
                 data->uvs 		= new awd_float64[lsgNumVertices * 2];
                 memcpy(data->uvs	, 	tUVs, 		lsgNumVertices * 2 * sizeof( awd_float64 ) );
             }
             
-            if( mHasUV2 ) {
+            if( lHasUV2 ) {
                 data->uvs2 		= new awd_float64[lsgNumVertices * 2];
                 memcpy(data->uvs2	, 	tUV2s, 		lsgNumVertices * 2 * sizeof( awd_float64 ) );
+            }
+            if( lHasSkin ) {
+                data->skinWeights 	= new awd_float64[lsgNumVertices * lBonesPerVertex];
+                data->skinIndices 	= new awd_uint32[lsgNumVertices * lBonesPerVertex];
+                memcpy(data->skinWeights	, 	tSkinWeights, 		lsgNumVertices * lBonesPerVertex * sizeof( awd_float64 ) );
+                memcpy(data->skinIndices, 	tSkinIndices, 		lsgNumVertices * lBonesPerVertex * sizeof( awd_uint32 ) );
             }
             
             
@@ -727,6 +890,10 @@ void GeomExporter::doExport(FbxObject* pObject){
         free( lUV2s );
     if( lVCs )
         free( lVCs );
+    if( lSkinWeights )
+        free( lSkinWeights );
+    if( lSkinIndices )
+        free( lSkinIndices );
     
     // free temp buffers
     //
@@ -741,6 +908,10 @@ void GeomExporter::doExport(FbxObject* pObject){
         free( tUV2s );
     if( tVCs )
         free( tVCs );
+    if( tSkinWeights )
+        free( tSkinWeights );
+    if( tSkinIndices )
+        free( tSkinIndices );
     
     
     lVertices = NULL;
@@ -750,12 +921,16 @@ void GeomExporter::doExport(FbxObject* pObject){
     lUVs = NULL;
     lUV2s = NULL;
     lVCs = NULL;
+    lSkinWeights = NULL;
+    lSkinIndices = NULL;
     tVertices = NULL;
     tNormals = NULL;
     tTangents= NULL;
     tUVs = NULL;
     tUV2s = NULL;
     tVCs = NULL;
+    tSkinWeights = NULL;
+    tSkinIndices = NULL;
     
     
     
@@ -839,43 +1014,56 @@ void GeomExporter::doExport(FbxObject* pObject){
             i_str.ui32 = mSubMeshes[lsubIndex]->data->indices;
             subGeom->add_stream(TRIANGLES, AWD_FIELD_UINT16, i_str, mSubMeshes[lsubIndex]->TriangleCount * TRIANGLE_VERTEX_COUNT );
             
-            if (mHasNormal)
+            if (lHasNormal)
             {
                 AWD_str_ptr n_str;
                 n_str.f64 = mSubMeshes[lsubIndex]->data->normals;
                 subGeom->add_stream(VERTEX_NORMALS, precision_geo, n_str, mSubMeshes[lsubIndex]->data->numVertices * 3);
             }
-            if (mHasTangent)
+            if (lHasTangent)
             {
                 AWD_str_ptr t_str;
                 t_str.f64 = mSubMeshes[lsubIndex]->data->tangent;
                 subGeom->add_stream(VERTEX_TANGENTS, precision_geo, t_str, mSubMeshes[lsubIndex]->data->numVertices * 3);
             }
-            if (mHasVC)
+            if (lHasVC)
             {
                 AWD_str_ptr t_str;
                 t_str.f64 = mSubMeshes[lsubIndex]->data->colors;
                 subGeom->add_stream(COLORS, precision_geo, t_str, mSubMeshes[lsubIndex]->data->numVertices * 3);
             }
             
-            if (mHasUV)
+            if (lHasUV)
             {
                 AWD_str_ptr u_str;
                 u_str.f64 = mSubMeshes[lsubIndex]->data->uvs;
                 subGeom->add_stream(UVS, precision_geo, u_str, mSubMeshes[lsubIndex]->data->numVertices * 2);
             }
             
-            if (mHasUV2)
+            if (lHasUV2)
             {
                 AWD_str_ptr su_str;
                 su_str.f64 = mSubMeshes[lsubIndex]->data->uvs2;
                 subGeom->add_stream(SUVS, precision_geo, su_str, mSubMeshes[lsubIndex]->data->numVertices * 2);
             }
             
+            if (lHasSkin)
+            {
+                AWD_str_ptr sw_str;
+                sw_str.f64 = mSubMeshes[lsubIndex]->data->skinWeights;
+                subGeom->add_stream(VERTEX_WEIGHTS, precision_geo, sw_str, mSubMeshes[lsubIndex]->data->numVertices * lBonesPerVertex);
+                
+                AWD_str_ptr si_str;
+                si_str.ui32 = mSubMeshes[lsubIndex]->data->skinIndices;
+                subGeom->add_stream(JOINT_INDICES, AWD_FIELD_UINT16, si_str, mSubMeshes[lsubIndex]->data->numVertices * lBonesPerVertex);
+            }
+            
             geom->add_sub_mesh( subGeom );
             
         }
     }
+    
+    mSubMeshes.Clear();
     
     mContext->add_mesh_data( geom, pMesh );
     

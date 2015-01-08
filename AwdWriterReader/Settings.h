@@ -30,6 +30,7 @@
 #define EXPORT_GEOM_NRM     "export_geom_normal"
 #define EXPORT_GEOM_TGT     "export_geom_tangent"
 #define EXPORT_GEOM_CLR     "export_geom_color"
+#define EXPORT_GEOM_SKN     "export_geom_skin"
 
 
 #define AWD_OPTION_GROUP EXP_ADV_OPT_GRP
@@ -62,6 +63,7 @@ public:
     void set_export_geom_nrm( bool );
     void set_export_geom_tgt( bool );
     void set_export_geom_clr( bool );
+    void set_export_geom_skn( bool );
     
     void set_compression    ( AWD_compression );
     
@@ -81,6 +83,7 @@ public:
     bool get_export_geom_nrm ();
     bool get_export_geom_tgt ();
     bool get_export_geom_clr ();
+    bool get_export_geom_skn ();
     
     AWD_compression get_compression();
     
@@ -107,6 +110,7 @@ private:
     static FbxProperty geom_nrm              (FbxIOSettings *pIOS);
     static FbxProperty geom_tgt              (FbxIOSettings *pIOS);
     static FbxProperty geom_clr              (FbxIOSettings *pIOS);
+    static FbxProperty geom_skn              (FbxIOSettings *pIOS);
     
 };
 

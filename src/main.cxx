@@ -19,6 +19,7 @@
 #define G_INCLUDES_NRM "normal"
 #define G_INCLUDES_TGT "tangent"
 #define G_INCLUDES_CLR "color"
+#define G_INCLUDES_SKN "skin"
 
 
 
@@ -40,6 +41,7 @@ int main(int argc, char** argv)
     bool exportNormal   = true;
     bool exportTangent  = true;
     bool exportColor    = true;
+    bool exportSkin     = true;
     
     bool embedTextures;
     bool exportEmpty;
@@ -89,6 +91,7 @@ int main(int argc, char** argv)
         vdataEnums.push_back( G_INCLUDES_NRM );
         vdataEnums.push_back( G_INCLUDES_TGT );
         vdataEnums.push_back( G_INCLUDES_CLR );
+        vdataEnums.push_back( G_INCLUDES_SKN );
         TCLAP::ValuesConstraint<std::string> allowedVdata( vdataEnums );
         
         TCLAP::MultiArg<std::string> streamIncArg("g","geom","include given vertex data to geometry", false, &allowedVdata );
@@ -171,6 +174,10 @@ int main(int argc, char** argv)
                 else if( *it == G_INCLUDES_CLR )
                 {
                     exportColor = !streamDefault;
+                }
+                else if( *it == G_INCLUDES_SKN )
+                {
+                    exportSkin = !streamDefault;
                 }
             }
         }
@@ -263,6 +270,8 @@ int main(int argc, char** argv)
         settings->set_export_geom_nrm(  exportNormal  );
         settings->set_export_geom_tgt(  exportTangent );
         settings->set_export_geom_clr(  exportColor   );
+        settings->set_export_geom_skn(  exportSkin    );
+
         delete settings;
         
         // Initialize the exporter.
