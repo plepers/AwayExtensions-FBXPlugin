@@ -16,6 +16,16 @@
 #include "utils.h"
 
 
+
+#include <sys/time.h>
+
+long getCurrentMs(){
+    timeval time;
+    gettimeofday(&time, NULL);
+    return (time.tv_sec * 1000) + (time.tv_usec / 1000);
+}
+
+
 const int TRIANGLE_VERTEX_COUNT = 3;
 const int MAX_BONES_PER_VERTEX = 4;
 
@@ -662,7 +672,7 @@ void GeomExporter::doExport(FbxObject* pObject){
     
     collapser->addStream( lVertices, 3 );
     
-    collapser->collapse();
+    collapser->collapse2();
     
     delete collapser;
     collapser = NULL;
@@ -1120,6 +1130,169 @@ void Collapser::addStream(awd_float64 *data, unsigned int csize)
     
 }
 
+
+void Collapser::collapse2()
+{
+    
+    
+    long time = getCurrentMs();
+    
+    const int lNumBuckets = 256;
+    
+    
+    int numStreams = mStreams.GetCount();
+    
+    
+    unsigned int lCurrent = 0;
+    unsigned int lCompare = 0;
+    
+    
+    // first create an interleaved version of geometry
+    // to compare vertices in one memcmp call
+    //
+    
+    awd_float64 *interleaved = new awd_float64[mVertexSize * mNumVertices];
+    awd_float64 *ptr = interleaved;
+    
+    for ( lCurrent = 0; lCurrent < mNumVertices; lCurrent++ )
+    {
+        for ( int streamIndex = 0; streamIndex < numStreams; streamIndex++ )
+        {
+            unsigned int csize	= mStreams[streamIndex]->csize;
+            memcpy( ptr, &mStreams[streamIndex]->data[lCurrent*csize], csize * sizeof(awd_float64) );
+            ptr += csize;
+        }
+        
+    }
+    
+    // hash and split vertices into bucket
+    // for faster compare/collapse
+    //
+    int ** buckets;
+    hash *hashList = (hash*) malloc( mNumVertices * sizeof(hash) );
+    
+    
+    unsigned int *bucketCounts = (unsigned int *) malloc( lNumBuckets * sizeof(unsigned int) );
+    memset( bucketCounts, 0, lNumBuckets * sizeof(unsigned int) );
+    
+    
+    // hash all vertices, store hashes and count vertices per buckets
+    //
+    
+    for ( lCurrent = 0; lCurrent < mNumVertices; lCurrent++ )
+    {
+        hash vHash = hashVertex( (char*) &interleaved[lCurrent * mVertexSize], mVertexSize * sizeof(awd_float64) );
+        vHash = vHash % lNumBuckets;
+        hashList[lCurrent] = vHash;
+        bucketCounts[vHash] ++;
+    }
+    
+    
+    // allocate buckets
+    //
+    buckets = (int **) malloc( lNumBuckets * sizeof(void *) );
+    
+    for( hash i = 0; i < lNumBuckets; i++ )
+    {
+        buckets[i] = (int*) malloc( bucketCounts[i] * sizeof(int) );
+    }
+    
+    // for each buckets, create le list of corresponding vertex indices
+    //
+    memset( bucketCounts, 0, lNumBuckets * sizeof(unsigned int) );
+    
+    for ( lCurrent = 0; lCurrent < mNumVertices; lCurrent++ )
+    {
+        hash vHash = hashList[lCurrent];
+        buckets[vHash][ bucketCounts[vHash] ] = lCurrent;
+        bucketCounts[vHash] ++;
+    }
+    
+    
+    
+    // collapse each buckets
+    //
+    
+    int lindexA, lindexB;
+    int* bucket;
+    
+    for( hash i = 0; i < lNumBuckets; i++ )
+    {
+        bucket = buckets[i];
+        int numVerts = bucketCounts[i];
+        
+        
+        
+        if( numVerts < 2 )
+        {
+            continue;
+        }
+        
+        for ( lindexA = 0; lindexA < numVerts-1; lindexA++ )
+        {
+            
+            lCurrent = bucket[lindexA];
+            
+            if( mRemapTable[lCurrent] != lCurrent )
+            {
+                // this vertex is already remapped to a previous one
+                // skip
+                // ----
+                continue;
+            }
+            
+            // compare current with all following vertices
+            // -----
+            for ( lindexB = lindexA+1; lindexB < numVerts; lindexB++ )
+            {
+                lCompare = bucket[lindexB];
+                
+                if(
+                   memcmp(
+                          &interleaved[lCurrent*mVertexSize],
+                          &interleaved[lCompare*mVertexSize],
+                          mVertexSize * sizeof(awd_float64)
+                          ) == 0
+                   )
+                {
+                    // vertices are equals
+                    
+                    mRemapTable[lCompare] = lCurrent;
+                };
+                
+                
+            }
+            
+        }
+
+        
+    }
+    
+    
+    
+    // free memory
+    
+    for( int i = 0; i < lNumBuckets; i++ )
+    {
+        free( buckets[i] );
+    }
+    
+    free( buckets );
+    free( bucketCounts );
+    free( hashList );
+    
+    
+    long elapsed = ( getCurrentMs() - time );
+    //FBXSDK_printf("complete collapse %i verts in %li ms", mNumVertices, elapsed );
+    
+    // remap indices
+    
+    remap();
+    
+    //logStats();
+    
+}
+
 //
 // brute force but simple collapsing
 // should probably be optimized...
@@ -1127,6 +1300,7 @@ void Collapser::addStream(awd_float64 *data, unsigned int csize)
 void Collapser::collapse()
 {
     
+    long time = getCurrentMs();
     
     int numStreams = mStreams.GetCount();
     
@@ -1176,7 +1350,7 @@ void Collapser::collapse()
                memcmp(
                       &interleaved[lCurrent*mVertexSize],
                       &interleaved[lCompare*mVertexSize],
-                      mVertexSize*sizeof(awd_float64)
+                      mVertexSize * sizeof(awd_float64)
                       ) == 0
                )
             {
@@ -1192,24 +1366,55 @@ void Collapser::collapse()
     
     free( interleaved );
     
-    
-    unsigned int i;
-
-    for (i = 0; i < mNumIndices; i++) {
-        mIndices[i] = mRemapTable[ mIndices[i] ];
-    }
+    long elapsed = ( getCurrentMs() - time );
+    FBXSDK_printf("complete collapse %i verts in %li ms \n", mNumVertices, elapsed );
     
     
-//    int newLen = 0;
-//    for (i = 0; i < mNumVertices; i++) {
-//        if( mRemapTable[i] == i )
-//            newLen++;
-//    }
-//    FBXSDK_printf("complete collapse, num verts : %i vs %i \n", newLen, mNumVertices );
+    remap();
+    
+    
+    
+    
+    //logStats();
     
     
 }
 
+void Collapser::remap()
+{
+    unsigned int i;
+    
+    for (i = 0; i < mNumIndices; i++) {
+        mIndices[i] = mRemapTable[ mIndices[i] ];
+    }
+}
+
+/*
+ * FNV hash
+ */
+Collapser::hash Collapser::hashVertex( char * vPtr, int len )
+{
+    unsigned char *p = (unsigned char*) vPtr;
+    hash h = 2166136261;
+    int i;
+    
+    for ( i = 0; i < len; i++ )
+        h = ( h * 16777619 ) ^ p[i];
+    
+    return h;
+}
+
+void Collapser::logStats()
+{
+    int newLen = 0;
+    for (int i = 0; i < mNumVertices; i++) {
+        //FBXSDK_printf("     %i  -  %i \n", i , mRemapTable[i]  );
+        if( mRemapTable[i] == i )
+            newLen++;
+    }
+    
+    FBXSDK_printf("complete collapse, num verts : %i vs %i \n", newLen, mNumVertices );
+}
 
 
 

@@ -67,8 +67,11 @@ public:
     
     void addStream( awd_float64 *data, unsigned int csize );
     void collapse();
+    void collapse2();
     
 private:
+    
+    typedef unsigned hash;
     
     struct Stream{
         Stream() :
@@ -79,6 +82,10 @@ private:
         awd_float64 	*data;
         unsigned int 	csize;
     };
+    
+    hash                hashVertex( char *vPtr, int len );
+    void                remap();
+    void                logStats();
     
     unsigned int 		mNumVertices;
     unsigned int 		mVertexSize;
