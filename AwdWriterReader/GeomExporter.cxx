@@ -672,7 +672,7 @@ void GeomExporter::doExport(FbxObject* pObject){
     
     collapser->addStream( lVertices, 3 );
     
-    collapser->collapse2();
+    collapser->collapse();
     
     delete collapser;
     collapser = NULL;
@@ -1131,7 +1131,7 @@ void Collapser::addStream(awd_float64 *data, unsigned int csize)
 }
 
 
-void Collapser::collapse2()
+void Collapser::collapse()
 {
     
     
@@ -1290,93 +1290,6 @@ void Collapser::collapse2()
     remap();
     
     //logStats();
-    
-}
-
-//
-// brute force but simple collapsing
-// should probably be optimized...
-//
-void Collapser::collapse()
-{
-    
-    long time = getCurrentMs();
-    
-    int numStreams = mStreams.GetCount();
-    
-    
-    unsigned int lCurrent = 0;
-    unsigned int lCompare = 0;
-    
-    
-    // first create an interleaved version of geometry
-    // to compare vertices in one memcmp call
-    //
-    
-    awd_float64 *interleaved = new awd_float64[mVertexSize * mNumVertices];
-    awd_float64 *ptr = interleaved;
-    
-    for ( lCurrent = 0; lCurrent < mNumVertices; lCurrent++ )
-    {
-        for ( int streamIndex = 0; streamIndex < numStreams; streamIndex++ )
-        {
-            unsigned int csize	= mStreams[streamIndex]->csize;
-            memcpy( ptr, &mStreams[streamIndex]->data[lCurrent*csize], csize * sizeof(awd_float64) );
-            ptr += csize;
-        }
-        
-    }
-    
-    
-    
-    for ( lCurrent = 0; lCurrent < mNumVertices-1; lCurrent++ )
-    {
-        
-        if( mRemapTable[lCurrent] != lCurrent )
-        {
-            // this vertex is already remapped to a previous one
-            // skip
-            // ----
-            continue;
-        }
-        
-        // compare current with all following vertices
-        // -----
-        for ( lCompare = lCurrent+1; lCompare < mNumVertices; lCompare++ )
-        {
-            
-            
-            if(
-               memcmp(
-                      &interleaved[lCurrent*mVertexSize],
-                      &interleaved[lCompare*mVertexSize],
-                      mVertexSize * sizeof(awd_float64)
-                      ) == 0
-               )
-            {
-                // vertices are equals
-                
-                mRemapTable[lCompare] = lCurrent;
-            };
-            
-            
-        }
-        
-    }
-    
-    free( interleaved );
-    
-    long elapsed = ( getCurrentMs() - time );
-    FBXSDK_printf("complete collapse %i verts in %li ms \n", mNumVertices, elapsed );
-    
-    
-    remap();
-    
-    
-    
-    
-    //logStats();
-    
     
 }
 

@@ -67,7 +67,6 @@ public:
     
     void addStream( awd_float64 *data, unsigned int csize );
     void collapse();
-    void collapse2();
     
 private:
     
