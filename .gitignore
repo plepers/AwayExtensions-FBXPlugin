@@ -1,0 +1,9 @@
+CMakeFiles
+cmake_install.cmake
+Makefile
+CTestTestfile.cmake
+ExporterConfig.h
+AwdWriterReader/libAwdWriterReader.dylib
+AwdWriterReader/libAwdWriterReader_static.a
+CMakeCache.txt
+fbx2awd
