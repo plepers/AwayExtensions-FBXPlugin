@@ -14,6 +14,7 @@ const bool  default_geom_uv         = true;
 const bool  default_geom_uv2        = true;
 const bool  default_geom_normal     = true;
 const bool  default_geom_tangent    = true;
+const bool  default_geom_binorm     = true;
 const bool  default_geom_color      = false;
 const bool  default_geom_skin       = true;
 
@@ -140,6 +141,7 @@ bool Settings::get_export_geom_uv  (){ return mIOSettings->GetBoolProp( PROP_ID(
 bool Settings::get_export_geom_uv2 (){ return mIOSettings->GetBoolProp( PROP_ID( EXPORT_GEOM_UV2 ), default_geom_uv2     ); }
 bool Settings::get_export_geom_nrm (){ return mIOSettings->GetBoolProp( PROP_ID( EXPORT_GEOM_NRM ), default_geom_normal  ); }
 bool Settings::get_export_geom_tgt (){ return mIOSettings->GetBoolProp( PROP_ID( EXPORT_GEOM_TGT ), default_geom_tangent ); }
+bool Settings::get_export_geom_bnr (){ return mIOSettings->GetBoolProp( PROP_ID( EXPORT_GEOM_BNR ), default_geom_binorm  ); }
 bool Settings::get_export_geom_clr (){ return mIOSettings->GetBoolProp( PROP_ID( EXPORT_GEOM_CLR ), default_geom_color   ); }
 bool Settings::get_export_geom_skn (){ return mIOSettings->GetBoolProp( PROP_ID( EXPORT_GEOM_SKN ), default_geom_skin    ); }
 
@@ -180,6 +182,7 @@ void Settings::set_export_geom_uv ( bool value){ mIOSettings->SetBoolProp( PROP_
 void Settings::set_export_geom_uv2( bool value){ mIOSettings->SetBoolProp( PROP_ID( EXPORT_GEOM_UV2 ), value ); }
 void Settings::set_export_geom_nrm( bool value){ mIOSettings->SetBoolProp( PROP_ID( EXPORT_GEOM_NRM ), value ); }
 void Settings::set_export_geom_tgt( bool value){ mIOSettings->SetBoolProp( PROP_ID( EXPORT_GEOM_TGT ), value ); }
+void Settings::set_export_geom_bnr( bool value){ mIOSettings->SetBoolProp( PROP_ID( EXPORT_GEOM_BNR ), value ); }
 void Settings::set_export_geom_clr( bool value){ mIOSettings->SetBoolProp( PROP_ID( EXPORT_GEOM_CLR ), value ); }
 void Settings::set_export_geom_skn( bool value){ mIOSettings->SetBoolProp( PROP_ID( EXPORT_GEOM_SKN ), value ); }
 
@@ -232,6 +235,7 @@ FbxProperty Settings::geom_uv (FbxIOSettings* pIOS) { return pIOS->GetProperty( 
 FbxProperty Settings::geom_uv2(FbxIOSettings* pIOS) { return pIOS->GetProperty( PROP_ID( EXPORT_GEOM_UV2 ) ); }
 FbxProperty Settings::geom_nrm(FbxIOSettings* pIOS) { return pIOS->GetProperty( PROP_ID( EXPORT_GEOM_NRM ) ); }
 FbxProperty Settings::geom_tgt(FbxIOSettings* pIOS) { return pIOS->GetProperty( PROP_ID( EXPORT_GEOM_TGT ) ); }
+FbxProperty Settings::geom_bnr(FbxIOSettings* pIOS) { return pIOS->GetProperty( PROP_ID( EXPORT_GEOM_BNR ) ); }
 FbxProperty Settings::geom_clr(FbxIOSettings* pIOS) { return pIOS->GetProperty( PROP_ID( EXPORT_GEOM_CLR ) ); }
 FbxProperty Settings::geom_skn(FbxIOSettings* pIOS) { return pIOS->GetProperty( PROP_ID( EXPORT_GEOM_SKN ) ); }
 

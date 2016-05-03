@@ -18,6 +18,7 @@
 #define G_INCLUDES_UV2 "uv2"
 #define G_INCLUDES_NRM "normal"
 #define G_INCLUDES_TGT "tangent"
+#define G_INCLUDES_BNR "binorm"
 #define G_INCLUDES_CLR "color"
 #define G_INCLUDES_SKN "skin"
 
@@ -40,6 +41,7 @@ int main(int argc, char** argv)
     bool exportUv2      = true;
     bool exportNormal   = true;
     bool exportTangent  = true;
+    bool exportBinorm   = true;
     bool exportColor    = true;
     bool exportSkin     = true;
     
@@ -151,7 +153,7 @@ int main(int argc, char** argv)
         }
         
         if( streamExcArg.isSet() || streamIncArg.isSet() ){
-            exportUv = exportUv2 = exportNormal  = exportTangent = exportColor = streamDefault;
+            exportUv = exportUv2 = exportNormal  = exportTangent = exportBinorm = exportColor = streamDefault;
             
             for(std::vector<std::string>::iterator it = streamList.begin(); it != streamList.end(); ++it)
             {
@@ -171,6 +173,10 @@ int main(int argc, char** argv)
                 {
                     exportTangent = !streamDefault;
                 }
+                else if( *it == G_INCLUDES_BNR )
+                {
+                    exportBinorm = !streamDefault;
+                }
                 else if( *it == G_INCLUDES_CLR )
                 {
                     exportColor = !streamDefault;
@@ -184,11 +190,12 @@ int main(int argc, char** argv)
         
         
         FBXSDK_printf("Include in geom : \n");
-        if( exportUv ) FBXSDK_printf("   uv\n");
-        if( exportUv2 ) FBXSDK_printf("   uv2\n");
-        if( exportNormal ) FBXSDK_printf("   normals\n");
+        if( exportUv )      FBXSDK_printf("   uv\n");
+        if( exportUv2 )     FBXSDK_printf("   uv2\n");
+        if( exportNormal )  FBXSDK_printf("   normals\n");
         if( exportTangent ) FBXSDK_printf("   tangents\n");
-        if( exportColor ) FBXSDK_printf("   colors\n");
+        if( exportBinorm )  FBXSDK_printf("   binorms\n");
+        if( exportColor )   FBXSDK_printf("   colors\n");
         
         
         std::cout << "input : " << input << std::endl;
@@ -269,6 +276,7 @@ int main(int argc, char** argv)
         settings->set_export_geom_uv2(  exportUv2     );
         settings->set_export_geom_nrm(  exportNormal  );
         settings->set_export_geom_tgt(  exportTangent );
+        settings->set_export_geom_bnr(  exportBinorm );
         settings->set_export_geom_clr(  exportColor   );
         settings->set_export_geom_skn(  exportSkin    );
 

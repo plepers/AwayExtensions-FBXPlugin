@@ -12,7 +12,7 @@ set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/CMakeModules;${CMAKE_MODULE_PATH}")
 
 # FBX plugin constants.
 set (FbxAwdExporter_VERSION_MAJOR 0)
-set (FbxAwdExporter_VERSION_MINOR 1)
+set (FbxAwdExporter_VERSION_MINOR 2)
 set (FbxAwdExporter_PLUGIN_EXTENSION "awd")
 set (FbxAwdExporter_PLUGIN_DESCRIPTION "Away3D AWD (*.awd)")
 set (FbxAwdExporter_PLUGIN_NAME "Awd_Writer_Reader")

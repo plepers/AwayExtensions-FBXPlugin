@@ -12,8 +12,9 @@
 
 #include "NodeExporter.h"
 
-// Experimental vertex color attribute ID
+// Experimental vertex color and binorms attribute ID
 const AWD_mesh_str_type COLORS = static_cast<AWD_mesh_str_type>(11);
+const AWD_mesh_str_type BINORMS = static_cast<AWD_mesh_str_type>(12);
 
 struct SubMeshData
 {
@@ -22,6 +23,8 @@ struct SubMeshData
     indices(NULL),
     vertices(NULL),
     normals(NULL),
+    tangent(NULL),
+    binorm(NULL),
     uvs(NULL),
     uvs2(NULL),
     skinWeights(NULL),
@@ -33,6 +36,7 @@ struct SubMeshData
     awd_float64     *vertices;
     awd_float64		*normals;
     awd_float64		*tangent;
+    awd_float64		*binorm;
     awd_float64		*colors;
     awd_float64		*uvs;
     awd_float64		*uvs2;
