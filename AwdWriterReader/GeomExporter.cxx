@@ -332,12 +332,25 @@ void GeomExporter::doExport(FbxObject* pObject){
     {
         lVCElement = pMesh->GetElementVertexColor(0);
     }
-
+    
+    const FbxGeometryElementTangent *	lTangentElement 		= NULL;
+    if (lHasTangent)
+    {
+        lTangentElement = pMesh->GetElementTangent(0);
+    }
+    
+    const FbxGeometryElementBinormal *	lBinormElement 		= NULL;
+    if (lHasBinorm)
+    {
+        lBinormElement = pMesh->GetElementBinormal(0);
+    }
+    
+    
+    
+    
     if (lAllByControlPoint)
     {
         const FbxGeometryElementNormal *        lNormalElement  = NULL;
-        const FbxGeometryElementTangent *       lTangentElement = NULL;
-        const FbxGeometryElementBinormal *      lBinormElement  = NULL;
         const FbxGeometryElementUV *            lUVElement      = NULL;
         const FbxGeometryElementUV *            lUV2Element     = NULL;
 
@@ -345,14 +358,6 @@ void GeomExporter::doExport(FbxObject* pObject){
         if (lHasNormal)
         {
             lNormalElement = pMesh->GetElementNormal(0);
-        }
-        if (lHasTangent)
-        {
-            lTangentElement = pMesh->GetElementTangent(0);
-        }
-        if (lHasBinorm)
-        {
-            lBinormElement = pMesh->GetElementBinormal(0);
         }
         if (lHasUV)
         {
@@ -474,7 +479,7 @@ void GeomExporter::doExport(FbxObject* pObject){
             }
 
 
-            delete numClusterPerVertex;
+            delete[] numClusterPerVertex;
 
 
         }
@@ -639,7 +644,17 @@ void GeomExporter::doExport(FbxObject* pObject){
 
                 if (lHasTangent)
                 {
-                    pMesh->GetPolygonVertexNormal(lPolygonIndex, lVerticeIndex, lCurrentTangent);
+//                    pMesh->GetPolygonVertexNormal(lPolygonIndex, lVerticeIndex, lCurrentTangent);
+//                    lTangents[lVertexCount * 3 + 0] = lCurrentTangent[0];
+//                    lTangents[lVertexCount * 3 + 1] = lCurrentTangent[1];
+//                    lTangents[lVertexCount * 3 + 2] = lCurrentTangent[2];
+                    int id = lVertexCount;
+                    if( lTangentElement->GetReferenceMode() == FbxGeometryElement::eIndexToDirect ) {
+                        id = lTangentElement->GetIndexArray().GetAt(id);
+                    }
+                    
+                    lCurrentTangent = lTangentElement->GetDirectArray().GetAt(id);
+                    
                     lTangents[lVertexCount * 3 + 0] = lCurrentTangent[0];
                     lTangents[lVertexCount * 3 + 1] = lCurrentTangent[1];
                     lTangents[lVertexCount * 3 + 2] = lCurrentTangent[2];
@@ -647,7 +662,13 @@ void GeomExporter::doExport(FbxObject* pObject){
 
                 if (lHasBinorm)
                 {
-                    pMesh->GetPolygonVertexNormal(lPolygonIndex, lVerticeIndex, lCurrentBinorm);
+                    int id = lVertexCount;
+                    if( lBinormElement->GetReferenceMode() == FbxGeometryElement::eIndexToDirect ) {
+                        id = lBinormElement->GetIndexArray().GetAt(id);
+                    }
+                    
+                    lCurrentBinorm = lBinormElement->GetDirectArray().GetAt(id);
+                    
                     lBinorms[lVertexCount * 3 + 0] = lCurrentBinorm[0];
                     lBinorms[lVertexCount * 3 + 1] = lCurrentBinorm[1];
                     lBinorms[lVertexCount * 3 + 2] = lCurrentBinorm[2];
@@ -1357,8 +1378,8 @@ void Collapser::collapse()
     }
 
     delete buckets;
-    delete bucketCounts;
-    delete hashList;
+    delete[] bucketCounts;
+    delete[] hashList;
 
 
     long elapsed = ( getCurrentMs() - time );
