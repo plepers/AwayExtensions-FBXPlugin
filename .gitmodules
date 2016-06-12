@@ -1,3 +1,6 @@
 [submodule "submodules/tclap"]
 	path = submodules/tclap
 	url = git@github.com:plepers/tclap.git
+[submodule "submodules/awd-sdk"]
+	path = submodules/awd-sdk
+	url = https://github.com/plepers/awd-sdk.git
