@@ -26,10 +26,13 @@ ADD_DEFINITIONS(-DFBX_VERSION_MAJOR=${FBX_VERSION_MAJOR})
 # find FBX_Extensions_SDK
 # FIND_PACKAGE(FBXExt)
 
+
 # find AWD cpp library
 find_path( AWD_INCLUDE_DIRS awd )
 find_library( AWD_LIBRARIES awd_static )
 
+# include Tootle Library
+add_subdirectory(${PROJECT_SOURCE_DIR}/submodules/amd-tootle/src/TootleLib)
 
 
 message(STATUS "AWD_INC = ${AWD_INCLUDE_DIRS}")
@@ -58,10 +61,12 @@ include_directories("${PROJECT_BINARY_DIR}/include")
 include_directories("${PROJECT_SOURCE_DIR}/include")
 include_directories( SYSTEM ${FBX_INCLUDE_DIRS} )
 include_directories( SYSTEM ${AWD_INCLUDE_DIRS} )
-include_directories("${PROJECT_SOURCE_DIR}/AwdWriterReader")
-include_directories("${PROJECT_SOURCE_DIR}/submodules/tclap/include")
+include_directories( "${PROJECT_SOURCE_DIR}/AwdWriterReader")
+include_directories( "${PROJECT_SOURCE_DIR}/submodules/tclap/include")
+include_directories( "${PROJECT_SOURCE_DIR}/submodules/amd-tootle/src/TootleLib/include" )
 
-set( LINK_LIBRARIES ${FBX_LIBRARIES} ${AWD_LIBRARIES} )
+
+set( LINK_LIBRARIES TootleLib ${FBX_LIBRARIES} ${AWD_LIBRARIES} )
 
 add_subdirectory (AwdWriterReader)
 
