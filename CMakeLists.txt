@@ -27,13 +27,12 @@ ADD_DEFINITIONS(-DFBX_VERSION_MAJOR=${FBX_VERSION_MAJOR})
 # FIND_PACKAGE(FBXExt)
 
 # find AWD cpp library
-find_path( AWD_INCLUDE_DIRS awd )
-find_library( AWD_LIBRARIES awd_static )
+add_subdirectory(submodules/awd-sdk/cpp-libawd)
+#find_path( AWD_INCLUDE_DIRS awd )
+#find_library( AWD_LIBRARIES awd_static )
 
 
 
-message(STATUS "AWD_INC = ${AWD_INCLUDE_DIRS}")
-message(STATUS "AWD_LIB = ${AWD_LIBRARIES}")
 
 
 
@@ -60,8 +59,9 @@ include_directories( SYSTEM ${FBX_INCLUDE_DIRS} )
 include_directories( SYSTEM ${AWD_INCLUDE_DIRS} )
 include_directories("${PROJECT_SOURCE_DIR}/AwdWriterReader")
 include_directories("${PROJECT_SOURCE_DIR}/submodules/tclap/include")
+include_directories("${PROJECT_SOURCE_DIR}/submodules/awd-sdk/cpp-libawd/include")
 
-set( LINK_LIBRARIES ${FBX_LIBRARIES} ${AWD_LIBRARIES} )
+set( LINK_LIBRARIES ${FBX_LIBRARIES} awd_static )
 
 add_subdirectory (AwdWriterReader)
 
