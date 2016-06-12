@@ -18,6 +18,8 @@ const bool  default_geom_binorm     = true;
 const bool  default_geom_color      = false;
 const bool  default_geom_skin       = true;
 
+const bool  default_tootle_optims   = true;
+
 
 Settings::Settings( FbxIOSettings* pIOSettings )
 {
@@ -86,6 +88,10 @@ void Settings::FillDefaultValues( FbxIOSettings *pIOS ){
             pIOS->AddProperty(IOPluginGroup, EXPORT_GEOM_SKN,    FbxBoolDT, "export skin",          &default_geom_skin );
         }
         
+        if( ! tootle_optims_property( pIOS ).IsValid() ) {
+            pIOS->AddProperty(IOPluginGroup, TOOTLE_OPTIMS,      FbxBoolDT, "tootle optims",        &default_tootle_optims );
+        }
+        
         if( ! compression_property( pIOS ).IsValid() ) {
             FbxProperty compression = pIOS->AddProperty(IOPluginGroup, AWD_COMPRESSION,    FbxEnumDT, "Compression",  AWD_COMPRESSION );
             compression.AddEnumValue( "uncompressed" );
@@ -145,6 +151,11 @@ bool Settings::get_export_geom_bnr (){ return mIOSettings->GetBoolProp( PROP_ID(
 bool Settings::get_export_geom_clr (){ return mIOSettings->GetBoolProp( PROP_ID( EXPORT_GEOM_CLR ), default_geom_color   ); }
 bool Settings::get_export_geom_skn (){ return mIOSettings->GetBoolProp( PROP_ID( EXPORT_GEOM_SKN ), default_geom_skin    ); }
 
+bool Settings::get_tootle_optims(){
+    return mIOSettings->GetBoolProp( TOOTLE_OPTIMS, default_tootle_optims );
+}
+
+
 
 void Settings::set_wide_matrix( bool value){
     mIOSettings->SetBoolProp( PROP_ID( WIDE_MATRIX ), value );
@@ -176,6 +187,10 @@ void Settings::set_scale( double value){
 
 void Settings::set_embed_textures( bool value){
     mIOSettings->SetBoolProp( EXP_EMBEDTEXTURE, value );
+}
+
+void Settings::set_tootle_optims( bool value){
+    mIOSettings->SetBoolProp( TOOTLE_OPTIMS, value );
 }
 
 void Settings::set_export_geom_uv ( bool value){ mIOSettings->SetBoolProp( PROP_ID( EXPORT_GEOM_UV  ), value ); }
@@ -228,6 +243,10 @@ FbxProperty Settings::scale_property(FbxIOSettings* pIOS) {
 
 FbxProperty Settings::compression_property(FbxIOSettings* pIOS) {
     return pIOS->GetProperty( PROP_ID( AWD_COMPRESSION ) );
+}
+
+FbxProperty Settings::tootle_optims_property(FbxIOSettings* pIOS) {
+    return pIOS->GetProperty( PROP_ID( TOOTLE_OPTIMS ) );
 }
 
 

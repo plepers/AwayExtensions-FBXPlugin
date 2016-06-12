@@ -356,6 +356,11 @@ int ProcessTootleSubMeshData( SubMeshData *subGeom, TootleSettings& settings )
 
 
     }
+    
+    if( settings.bPrintStats )
+    {
+        PrintStats(stdout, &stats);
+    }
 
     return 0;
 
@@ -603,5 +608,86 @@ int OptimizeVertexMemory( SubMeshData *subGeom )
 
     return 0;
 }
+
+
+
+
+//=================================================================================================================================
+/// A helper function to print formatted TOOTLE statistics
+/// \param f      A file to print the statistics to
+/// \param pStats The statistics to be printed
+//=================================================================================================================================
+void PrintStats(FILE* fp, TootleStats* pStats)
+{
+    
+    fprintf(fp, "#Tootle Stats\n"
+            "#Clusters         : %u\n"
+            "#CacheIn/Out      : %.3fx (%.3f/%.3f)\n",
+            pStats->nClusters,
+            pStats->fVCacheIn / pStats->fVCacheOut,
+            pStats->fVCacheIn,
+            pStats->fVCacheOut);
+    
+    if (pStats->fMeasureOverdrawTime >= 0)
+    {
+        fprintf(fp, "#OverdrawIn/Out   : %.3fx (%.3f/%.3f)\n"
+                "#OverdrawMaxIn/Out: %.3fx (%.3f/%.3f)\n",
+                pStats->fOverdrawIn / pStats->fOverdrawOut,
+                pStats->fOverdrawIn,
+                pStats->fOverdrawOut,
+                pStats->fMaxOverdrawIn / pStats->fMaxOverdrawOut,
+                pStats->fMaxOverdrawIn,
+                pStats->fMaxOverdrawOut);
+    }
+    
+    fprintf(fp, "\n#Tootle Timings\n");
+    
+    // print out the timing result if appropriate.
+    if (pStats->fOptimizeVCacheTime >= 0)
+    {
+        fprintf(fp, "#OptimizeVCache               = %.4lf seconds\n", pStats->fOptimizeVCacheTime);
+    }
+    
+    if (pStats->fClusterMeshTime >= 0)
+    {
+        fprintf(fp, "#ClusterMesh                  = %.4lf seconds\n", pStats->fClusterMeshTime);
+    }
+    
+    if (pStats->fVCacheClustersTime >= 0)
+    {
+        fprintf(fp, "#VCacheClusters               = %.4lf seconds\n", pStats->fVCacheClustersTime);
+    }
+    
+    if (pStats->fOptimizeVCacheAndClusterMeshTime >= 0)
+    {
+        fprintf(fp, "#OptimizeVCacheAndClusterMesh = %.4lf seconds\n", pStats->fOptimizeVCacheAndClusterMeshTime);
+    }
+    
+    if (pStats->fOptimizeOverdrawTime >= 0)
+    {
+        fprintf(fp, "#OptimizeOverdraw             = %.4lf seconds\n", pStats->fOptimizeOverdrawTime);
+    }
+    
+    if (pStats->fTootleOptimizeTime >= 0)
+    {
+        fprintf(fp, "#TootleOptimize               = %.4lf seconds\n", pStats->fTootleOptimizeTime);
+    }
+    
+    if (pStats->fTootleFastOptimizeTime >= 0)
+    {
+        fprintf(fp, "#TootleFastOptimize           = %.4lf seconds\n", pStats->fTootleFastOptimizeTime);
+    }
+    
+    if (pStats->fMeasureOverdrawTime >= 0)
+    {
+        fprintf(fp, "#MeasureOverdraw              = %.4lf seconds\n", pStats->fMeasureOverdrawTime);
+    }
+    
+    if (pStats->fOptimizeVertexMemoryTime >= 0)
+    {
+        fprintf(fp, "#OptimizeVertexMemory         = %.4lf seconds\n", pStats->fOptimizeVertexMemoryTime);
+    }
+}
+
 
 

@@ -46,6 +46,7 @@ struct TootleSettings
     //  TOOTLE_VCACHE_TIPSY.
     bool                  bOptimizeVertexMemory;   // true if you want to optimize vertex memory location, false to skip
     bool                  bMeasureOverdraw;        // true if you want to measure overdraw, false to skip
+    bool                  bPrintStats;
 };
 
 //=================================================================================================================================
@@ -79,5 +80,7 @@ void DisplayTootleErrorMessage(TootleResult eResult);
 int ProcessTootleSubMeshData( SubMeshData *subGeom, TootleSettings& settings );
 int OptimizeVertexMemory( SubMeshData *subGeom );
 
+
+void PrintStats(FILE* fp, TootleStats* pStats);
 
 #endif

@@ -45,6 +45,8 @@ void GeomExporter::setup( ExportContext *context, ExporterProvider *provider )
     tootleSettings.eVCacheOptimizer      = TOOTLE_VCACHE_AUTO;             // the auto selection as the default to optimize vertex cache
     tootleSettings.bOptimizeVertexMemory = true;                           // default value is to optimize the vertex memory
     tootleSettings.bMeasureOverdraw      = false;                           // default is to measure overdraw
+    
+    tootleSettings.bPrintStats           = false;
 
     TootleResult result;
     
@@ -1000,8 +1002,10 @@ void GeomExporter::doExport(FbxObject* pObject){
             // Tootle optimization
             // ------------------
             
-            ProcessTootleSubMeshData( data, tootleSettings );
-
+            if( mContext->GetSettings()->get_tootle_optims() )
+            {
+                ProcessTootleSubMeshData( data, tootleSettings );
+            }
 
         }
     }
