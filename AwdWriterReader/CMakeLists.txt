@@ -14,6 +14,8 @@ set( AwdWriterReader_SOURCES
   TextureExporter.cxx
   ExportContext.cxx
   utils.cxx
+  tootle.cxx
+  Timer.cxx
 
   AwdReader.h
   AwdWriter.h
@@ -24,10 +26,13 @@ set( AwdWriterReader_SOURCES
   ContainerExporter.h
   MeshExporter.h
   GeomExporter.h
+  GeomData.h
   MaterialExporter.h
   TextureExporter.h
   ExportContext.h
   utils.h
+  tootle.h
+  Timer.h
 )
 
 add_library( AwdWriterReader_static ${AwdWriterReader_SOURCES} )

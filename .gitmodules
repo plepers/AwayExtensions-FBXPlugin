@@ -4,3 +4,6 @@
 [submodule "submodules/awd-sdk"]
 	path = submodules/awd-sdk
 	url = https://github.com/plepers/awd-sdk.git
+[submodule "submodules/amd-tootle"]
+	path = submodules/amd-tootle
+	url = https://github.com/plepers/amd-tootle.git

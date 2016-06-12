@@ -89,7 +89,6 @@ bool AwdWriter::Write(FbxDocument* pDocument)
     if(lIsAScene)
     {
         PreprocessScene(*lScene);
-        FBXSDK_printf("I'm in my own writer\n");
 
         ExportScene(lScene);
 
@@ -207,7 +206,7 @@ bool AwdWriter::ExportChildren(FbxNode* pNode)
 bool AwdWriter::ExportNode( FbxNode* pNode, bool force )
 {
     
-    FBXSDK_printf("ExportNode %s\n", pNode->GetName() );
+    //FBXSDK_printf("ExportNode %s\n", pNode->GetName() );
     
     
     bool exported = force;

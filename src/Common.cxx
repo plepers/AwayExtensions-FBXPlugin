@@ -21,7 +21,6 @@
 
 bool AwdInitialize( FbxManager*& pManager )
 {
-    FBXSDK_printf("AwdInitialize!\n");
 
     int FirstPluginID, RegistredCount;
     
@@ -175,13 +174,13 @@ bool LoadScene(FbxManager* pManager, FbxDocument* pScene, const char* pFilename)
         // From this point, it is possible to access animation stack information without
         // the expense of loading the entire file.
 
-        FBXSDK_printf("Animation Stack Information\n");
+//        FBXSDK_printf("Animation Stack Information\n");
 
         lAnimStackCount = lImporter->GetAnimStackCount();
 
-        FBXSDK_printf("    Number of Animation Stacks: %d\n", lAnimStackCount);
-        FBXSDK_printf("    Current Animation Stack: \"%s\"\n", lImporter->GetActiveAnimStackName().Buffer());
-        FBXSDK_printf("\n");
+//        FBXSDK_printf("    Number of Animation Stacks: %d\n", lAnimStackCount);
+//        FBXSDK_printf("    Current Animation Stack: \"%s\"\n", lImporter->GetActiveAnimStackName().Buffer());
+//        FBXSDK_printf("\n");
 
         for(i = 0; i < lAnimStackCount; i++)
         {

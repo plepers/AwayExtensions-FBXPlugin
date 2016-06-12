@@ -34,6 +34,9 @@
 #define EXPORT_GEOM_SKN     "export_geom_skin"
 
 
+#define TOOTLE_OPTIMS       "tootle_optims"
+
+
 #define AWD_OPTION_GROUP EXP_ADV_OPT_GRP
 
 #define PROP_ID( _ID ) AWD_OPTION_GROUP "|" FbxAwdExporter_PLUGIN_NAME "|" _ID
@@ -67,6 +70,8 @@ public:
     void set_export_geom_clr( bool );
     void set_export_geom_skn( bool );
     
+    void set_tootle_optims  ( bool );
+    
     void set_compression    ( AWD_compression );
     
     
@@ -87,6 +92,8 @@ public:
     bool get_export_geom_bnr ();
     bool get_export_geom_clr ();
     bool get_export_geom_skn ();
+    
+    bool get_tootle_optims   ();
     
     AWD_compression get_compression();
     
@@ -115,6 +122,7 @@ private:
     static FbxProperty geom_bnr              (FbxIOSettings *pIOS);
     static FbxProperty geom_clr              (FbxIOSettings *pIOS);
     static FbxProperty geom_skn              (FbxIOSettings *pIOS);
+    static FbxProperty tootle_optims_property(FbxIOSettings *pIOS);
     
 };
 

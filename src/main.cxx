@@ -45,6 +45,8 @@ int main(int argc, char** argv)
     bool exportColor    = true;
     bool exportSkin     = true;
     
+    bool tootleOptim    = true;
+    
     bool embedTextures;
     bool exportEmpty;
     double sceneScale;
@@ -112,6 +114,10 @@ int main(int argc, char** argv)
         TCLAP::ValuesConstraint<std::string> allowedComps( compEnums );
         TCLAP::ValueArg<std::string> compressArg( "c","compression","compression type", false, "uncompressed", &allowedComps);
         
+        // tootle options
+        //
+        
+        TCLAP::SwitchArg notootleSwitch("","notootle","skip tootle optimisations", cmd, false);
         
         cmd.add( compressArg );
         
@@ -130,6 +136,8 @@ int main(int argc, char** argv)
         geomPrecision   = precisionSwitch.getValue() || wideGeomSwitch.getValue();
         matrPrecision   = precisionSwitch.getValue() || wideMatrSwitch.getValue();
         propPrecision   = precisionSwitch.getValue() || widePropSwitch.getValue();
+        
+        tootleOptim     = ! notootleSwitch.getValue();
         
         // stream list
         //
@@ -188,17 +196,14 @@ int main(int argc, char** argv)
             }
         }
         
+//        FBXSDK_printf("Include in geom : \n");
+//        if( exportUv )      FBXSDK_printf("   uv\n");
+//        if( exportUv2 )     FBXSDK_printf("   uv2\n");
+//        if( exportNormal )  FBXSDK_printf("   normals\n");
+//        if( exportTangent ) FBXSDK_printf("   tangents\n");
+//        if( exportBinorm )  FBXSDK_printf("   binorms\n");
+//        if( exportColor )   FBXSDK_printf("   colors\n");
         
-        FBXSDK_printf("Include in geom : \n");
-        if( exportUv )      FBXSDK_printf("   uv\n");
-        if( exportUv2 )     FBXSDK_printf("   uv2\n");
-        if( exportNormal )  FBXSDK_printf("   normals\n");
-        if( exportTangent ) FBXSDK_printf("   tangents\n");
-        if( exportBinorm )  FBXSDK_printf("   binorms\n");
-        if( exportColor )   FBXSDK_printf("   colors\n");
-        
-        
-        std::cout << "input : " << input << std::endl;
         
         if( compression == "uncompressed" ) {
             compressionEnum = UNCOMPRESSED;

@@ -30,6 +30,37 @@ const int TRIANGLE_VERTEX_COUNT = 3;
 const int MAX_BONES_PER_VERTEX = 4;
 
 
+void GeomExporter::setup( ExportContext *context, ExporterProvider *provider )
+{
+    // call parent definition
+    NodeExporter::setup( context, provider );
+    
+    // setup tootle lib
+    tootleSettings.pMeshName             = NULL;
+    tootleSettings.pViewpointName        = NULL;
+    tootleSettings.nClustering           = 0;
+    tootleSettings.nCacheSize            = TOOTLE_DEFAULT_VCACHE_SIZE;
+    tootleSettings.eWinding              = TOOTLE_CW;
+    tootleSettings.algorithmChoice       = TOOTLE_OPTIMIZE;
+    tootleSettings.eVCacheOptimizer      = TOOTLE_VCACHE_AUTO;             // the auto selection as the default to optimize vertex cache
+    tootleSettings.bOptimizeVertexMemory = true;                           // default value is to optimize the vertex memory
+    tootleSettings.bMeasureOverdraw      = false;                           // default is to measure overdraw
+    
+    tootleSettings.bPrintStats           = false;
+
+    TootleResult result;
+    
+    // initialize Tootle
+    result = TootleInit();
+    
+    if (result != TOOTLE_OK)
+    {
+        DisplayTootleErrorMessage(result);
+        exit(1);
+    }
+}
+
+
 
 bool GeomExporter::isHandleObject( FbxObject *pObj ){
     return ( pObj->Is<FbxMesh>() );
@@ -920,8 +951,10 @@ void GeomExporter::doExport(FbxObject* pObject){
 
             SubMeshData *data = new SubMeshData();
             mSubMeshes[lsubIndex]->data = data;
-
+            
+            data->numIndices = numIndices;
             data->numVertices = lsgNumVertices;
+            data->bonesPerVertex = lBonesPerVertex;
 
             data->indices 	= tIndices;
 
@@ -964,11 +997,15 @@ void GeomExporter::doExport(FbxObject* pObject){
                 memcpy(data->skinWeights	, 	tSkinWeights, 		lsgNumVertices * lBonesPerVertex * sizeof( awd_float64 ) );
                 memcpy(data->skinIndices, 	tSkinIndices, 		lsgNumVertices * lBonesPerVertex * sizeof( awd_uint32 ) );
             }
-
-
-
-
-
+            
+            
+            // Tootle optimization
+            // ------------------
+            
+            if( mContext->GetSettings()->get_tootle_optims() )
+            {
+                ProcessTootleSubMeshData( data, tootleSettings );
+            }
 
         }
     }
