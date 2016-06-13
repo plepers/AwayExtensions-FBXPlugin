@@ -86,11 +86,13 @@ void GeomExporter::doExport(FbxObject* pObject){
     if (!pMesh->GetNode())
         return;
 
+//    FBXSDK_printf("Export Geom %s\n", pMesh->GetNode()->GetName() );
 
     // triangulate mesh using FBX geometry converter
     // here we should be able to triangulate nurbs and patch too
     // but maybe we should use a dedicated NodeExporter
     //
+    
 
     FbxGeometryConverter *geomConverter = new FbxGeometryConverter( mContext->GetFbxManager() );
     FbxNodeAttribute *nodeAttribute = geomConverter->Triangulate( pMesh, false );
@@ -849,7 +851,8 @@ void GeomExporter::doExport(FbxObject* pObject){
     {
         if( mSubMeshes[lsubIndex]->TriangleCount > 0 )
         {
-
+            
+//            FBXSDK_printf("   submesh %i\n", lsubIndex );
             // reset the indices map
             // and the number of vertices
             lsgNumVertices = 0;

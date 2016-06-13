@@ -13,7 +13,7 @@
 #include <iostream>
 #include "tootlelib.h"
 #include "GeomData.h"
-#include <awd/awd.h>
+#include "awd.h"
 
 //=================================================================================================================================
 /// Enumeration for the choice of test cases for tootle.

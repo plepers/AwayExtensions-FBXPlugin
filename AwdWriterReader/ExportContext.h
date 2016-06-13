@@ -10,7 +10,7 @@
 #define __FbxAwdExporter__ExportContext__
 
 #include <fbxsdk.h>
-#include <awd/awd.h>
+#include "awd.h"
 #include <BlocksMap.h>
 #include "Settings.h"
 

@@ -10,7 +10,7 @@
 #define __FbxAwdExporter__utils__
 
 #include <fbxsdk.h>
-#include <awd/awd.h>
+#include "awd.h"
 
 namespace AwdUtils {
     

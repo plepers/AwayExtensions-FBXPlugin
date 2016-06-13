@@ -276,6 +276,7 @@ int main(int argc, char** argv)
         settings->set_embed_textures(   embedTextures);
         settings->set_export_empty(     exportEmpty );
         settings->set_scale(            sceneScale );
+        settings->set_tootle_optims(    tootleOptim );
         
         settings->set_export_geom_uv (  exportUv      );
         settings->set_export_geom_uv2(  exportUv2     );

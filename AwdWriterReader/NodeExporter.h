@@ -9,7 +9,7 @@
 #ifndef __FbxAwdExporter__NodeExporter__
 #define __FbxAwdExporter__NodeExporter__
 
-#include <awd/awd.h>
+#include "awd.h"
 #include <fbxsdk.h>
 
 #include "ExportContext.h"

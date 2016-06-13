@@ -13,7 +13,7 @@
 #define AWD_WRITER_H
 
 #include <fbxsdk.h>
-#include <awd/awd.h>
+#include "awd.h"
 #include <ExportContext.h>
 #include "NodeExporter.h"
 

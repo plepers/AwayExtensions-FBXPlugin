@@ -10,7 +10,7 @@
 #define FbxAwdExporter_GeomData_h
 
 
-#include <awd/awd.h>
+#include "awd.h"
 
 
 struct SubMeshData

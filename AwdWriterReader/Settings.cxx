@@ -152,7 +152,7 @@ bool Settings::get_export_geom_clr (){ return mIOSettings->GetBoolProp( PROP_ID(
 bool Settings::get_export_geom_skn (){ return mIOSettings->GetBoolProp( PROP_ID( EXPORT_GEOM_SKN ), default_geom_skin    ); }
 
 bool Settings::get_tootle_optims(){
-    return mIOSettings->GetBoolProp( TOOTLE_OPTIMS, default_tootle_optims );
+    return mIOSettings->GetBoolProp( PROP_ID( TOOTLE_OPTIMS ), default_tootle_optims );
 }
 
 
@@ -190,7 +190,7 @@ void Settings::set_embed_textures( bool value){
 }
 
 void Settings::set_tootle_optims( bool value){
-    mIOSettings->SetBoolProp( TOOTLE_OPTIMS, value );
+    mIOSettings->SetBoolProp( PROP_ID( TOOTLE_OPTIMS ), value );
 }
 
 void Settings::set_export_geom_uv ( bool value){ mIOSettings->SetBoolProp( PROP_ID( EXPORT_GEOM_UV  ), value ); }

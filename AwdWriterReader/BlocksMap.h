@@ -10,7 +10,7 @@
 #define __FbxAwdExporter__BlocksMap__
 
 
-#include <awd/awd.h>
+#include "awd.h"
 
 /**
  * BlockCache

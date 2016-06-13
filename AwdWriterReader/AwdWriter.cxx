@@ -1,5 +1,5 @@
 
-#include <awd/awd.h>
+#include "awd.h"
 
 
 #include "AwdWriter.h"
@@ -10,7 +10,6 @@
 #include <ContainerExporter.h>
 #include <MeshExporter.h>
 
-#include <awd/awd.h>
 
 
 

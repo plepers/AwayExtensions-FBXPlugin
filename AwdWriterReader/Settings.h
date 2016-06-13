@@ -11,7 +11,7 @@
 
 
 #include <fbxsdk.h>
-#include <awd/awd.h>
+#include "awd.h"
 
 #include "ExporterConfig.h"
 
