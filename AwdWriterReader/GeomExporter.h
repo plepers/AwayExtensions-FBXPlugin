@@ -29,6 +29,10 @@ public:
     virtual void doExport( FbxObject* );
     
     TootleSettings tootleSettings;
+
+private:
+    
+    bool isColinear( awd_float64* pos, unsigned int * tri );
     
 };
 

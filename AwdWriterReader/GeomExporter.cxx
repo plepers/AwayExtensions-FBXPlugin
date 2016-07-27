@@ -844,8 +844,9 @@ void GeomExporter::doExport(FbxObject* pObject){
     int lRemappedIndex = 0;
     unsigned int lCurrentIndex = 0;
     unsigned int lsgNumVertices = 0;
-
-
+    
+    unsigned int _colinears = 0;
+    
 
     for ( lsubIndex = 0; lsubIndex<mSubMeshes.GetCount(); lsubIndex++)
     {
@@ -867,82 +868,99 @@ void GeomExporter::doExport(FbxObject* pObject){
             tIndices = new unsigned int[ numIndices ];
 
 
-            for( int newIdxPtr =0; newIdxPtr < numIndices; newIdxPtr++ )
+            for( int faceIndexOffset =0; faceIndexOffset < numIndices; faceIndexOffset+=3 )
             {
-                idxPtr = newIdxPtr + sgOffset;
-
-                lCurrentIndex = lIndices[ idxPtr ];
-                lRemappedIndex = tIdxMap[ lCurrentIndex ];
-
-                // first time we found this vertex
-                // in this subGeom. add it to the temp VBO
-                // and store the remapped index to IdxMap
-                if( lRemappedIndex == -1 )
-                {
-                    lRemappedIndex = lsgNumVertices;
-                    tIdxMap[ lCurrentIndex ] = lRemappedIndex;
-
-                    tVertices[lsgNumVertices * 3 + 0] = lVertices[lCurrentIndex * 3 + 0];
-                    tVertices[lsgNumVertices * 3 + 1] = lVertices[lCurrentIndex * 3 + 1];
-                    tVertices[lsgNumVertices * 3 + 2] = lVertices[lCurrentIndex * 3 + 2];
-
-                    if (lHasNormal)
-                    {
-                        tNormals[lsgNumVertices * 3 + 0] = lNormals[lCurrentIndex * 3 + 0];
-                        tNormals[lsgNumVertices * 3 + 1] = lNormals[lCurrentIndex * 3 + 1];
-                        tNormals[lsgNumVertices * 3 + 2] = lNormals[lCurrentIndex * 3 + 2];
-                    }
-
-                    if (lHasTangent)
-                    {
-                        tTangents[lsgNumVertices * 3 + 0] = lTangents[lCurrentIndex * 3 + 0];
-                        tTangents[lsgNumVertices * 3 + 1] = lTangents[lCurrentIndex * 3 + 1];
-                        tTangents[lsgNumVertices * 3 + 2] = lTangents[lCurrentIndex * 3 + 2];
-                    }
-
-                    if (lHasBinorm)
-                    {
-                        tBinorms[lsgNumVertices * 3 + 0] = lBinorms[lCurrentIndex * 3 + 0];
-                        tBinorms[lsgNumVertices * 3 + 1] = lBinorms[lCurrentIndex * 3 + 1];
-                        tBinorms[lsgNumVertices * 3 + 2] = lBinorms[lCurrentIndex * 3 + 2];
-                    }
-
-                    if (lHasVC)
-                    {
-                        tVCs[lsgNumVertices * 3 + 0] = lVCs[lCurrentIndex * 3 + 0];
-                        tVCs[lsgNumVertices * 3 + 1] = lVCs[lCurrentIndex * 3 + 1];
-                        tVCs[lsgNumVertices * 3 + 2] = lVCs[lCurrentIndex * 3 + 2];
-                    }
-
-                    if (lHasUV)
-                    {
-                        tUVs[lsgNumVertices * 2 + 0] = lUVs[lCurrentIndex * 2 + 0];
-                        tUVs[lsgNumVertices * 2 + 1] = lUVs[lCurrentIndex * 2 + 1];
-                    }
-                    if (lHasUV2)
-                    {
-                        tUV2s[lsgNumVertices * 2 + 0] = lUV2s[lCurrentIndex * 2 + 0];
-                        tUV2s[lsgNumVertices * 2 + 1] = lUV2s[lCurrentIndex * 2 + 1];
-                    }
-
-                    if( lHasSkin )
-                    {
-                        memcpy( &tSkinWeights[lsgNumVertices*lBonesPerVertex], &lSkinWeights[lCurrentIndex*lBonesPerVertex], lBonesPerVertex*sizeof(awd_float64) );
-                        memcpy( &tSkinIndices[lsgNumVertices*lBonesPerVertex], &lSkinIndices[lCurrentIndex*lBonesPerVertex], lBonesPerVertex*sizeof(awd_uint32) );
-                    }
-
-                    // grow the number of vertices for this geom
-                    lsgNumVertices++;
-
+                
+                // discard colinear triangle
+                
+                if( isColinear(lVertices, &lIndices[ faceIndexOffset + sgOffset ] ) ){
+                    _colinears++;
+                    continue;
                 }
-                // the vertex is already added to VBO
-                // just use the index of this vertex
-                else
-                {
-
+                
+                
+                
+                //
+                for ( int vTriIndex = 0; vTriIndex<3; vTriIndex++ ) {
+                    
+                    int newIdxPtr = faceIndexOffset + vTriIndex;
+                    idxPtr = newIdxPtr + sgOffset;
+                    
+                    lCurrentIndex = lIndices[ idxPtr ];
+                    lRemappedIndex = tIdxMap[ lCurrentIndex ];
+                    
+                    // first time we found this vertex
+                    // in this subGeom. add it to the temp VBO
+                    // and store the remapped index to IdxMap
+                    if( lRemappedIndex == -1 )
+                    {
+                        lRemappedIndex = lsgNumVertices;
+                        tIdxMap[ lCurrentIndex ] = lRemappedIndex;
+                        
+                        tVertices[lsgNumVertices * 3 + 0] = lVertices[lCurrentIndex * 3 + 0];
+                        tVertices[lsgNumVertices * 3 + 1] = lVertices[lCurrentIndex * 3 + 1];
+                        tVertices[lsgNumVertices * 3 + 2] = lVertices[lCurrentIndex * 3 + 2];
+                        
+                        if (lHasNormal)
+                        {
+                            tNormals[lsgNumVertices * 3 + 0] = lNormals[lCurrentIndex * 3 + 0];
+                            tNormals[lsgNumVertices * 3 + 1] = lNormals[lCurrentIndex * 3 + 1];
+                            tNormals[lsgNumVertices * 3 + 2] = lNormals[lCurrentIndex * 3 + 2];
+                        }
+                        
+                        if (lHasTangent)
+                        {
+                            tTangents[lsgNumVertices * 3 + 0] = lTangents[lCurrentIndex * 3 + 0];
+                            tTangents[lsgNumVertices * 3 + 1] = lTangents[lCurrentIndex * 3 + 1];
+                            tTangents[lsgNumVertices * 3 + 2] = lTangents[lCurrentIndex * 3 + 2];
+                        }
+                        
+                        if (lHasBinorm)
+                        {
+                            tBinorms[lsgNumVertices * 3 + 0] = lBinorms[lCurrentIndex * 3 + 0];
+                            tBinorms[lsgNumVertices * 3 + 1] = lBinorms[lCurrentIndex * 3 + 1];
+                            tBinorms[lsgNumVertices * 3 + 2] = lBinorms[lCurrentIndex * 3 + 2];
+                        }
+                        
+                        if (lHasVC)
+                        {
+                            tVCs[lsgNumVertices * 3 + 0] = lVCs[lCurrentIndex * 3 + 0];
+                            tVCs[lsgNumVertices * 3 + 1] = lVCs[lCurrentIndex * 3 + 1];
+                            tVCs[lsgNumVertices * 3 + 2] = lVCs[lCurrentIndex * 3 + 2];
+                        }
+                        
+                        if (lHasUV)
+                        {
+                            tUVs[lsgNumVertices * 2 + 0] = lUVs[lCurrentIndex * 2 + 0];
+                            tUVs[lsgNumVertices * 2 + 1] = lUVs[lCurrentIndex * 2 + 1];
+                        }
+                        if (lHasUV2)
+                        {
+                            tUV2s[lsgNumVertices * 2 + 0] = lUV2s[lCurrentIndex * 2 + 0];
+                            tUV2s[lsgNumVertices * 2 + 1] = lUV2s[lCurrentIndex * 2 + 1];
+                        }
+                        
+                        if( lHasSkin )
+                        {
+                            memcpy( &tSkinWeights[lsgNumVertices*lBonesPerVertex], &lSkinWeights[lCurrentIndex*lBonesPerVertex], lBonesPerVertex*sizeof(awd_float64) );
+                            memcpy( &tSkinIndices[lsgNumVertices*lBonesPerVertex], &lSkinIndices[lCurrentIndex*lBonesPerVertex], lBonesPerVertex*sizeof(awd_uint32) );
+                        }
+                        
+                        // grow the number of vertices for this geom
+                        lsgNumVertices++;
+                        
+                    }
+                    // the vertex is already added to VBO
+                    // just use the index of this vertex
+                    else
+                    {
+                        
+                    }
+                    
+                    tIndices[ newIdxPtr ] = lRemappedIndex;
                 }
 
-                tIndices[ newIdxPtr ] = lRemappedIndex;
+                
             }
 
 
@@ -1011,6 +1029,10 @@ void GeomExporter::doExport(FbxObject* pObject){
             }
 
         }
+    }
+    
+    if( _colinears > 0){
+        FBXSDK_printf("%i colinear triangles found\n", _colinears );
     }
 
 
@@ -1216,6 +1238,28 @@ void GeomExporter::doExport(FbxObject* pObject){
     mSubMeshes.Clear();
 
     mContext->add_mesh_data( geom, pMesh );
+
+}
+
+
+bool GeomExporter::isColinear( awd_float64* pos, unsigned int * tri  ){
+    
+    int i0 = tri[ 0 ];
+    int i1 = tri[ 1 ];
+    int i2 = tri[ 2 ];
+    
+    
+    FbxVector4 v1 = FbxVector4( pos[i1 * 3 + 0]-pos[i0 * 3 + 0] ,
+                                pos[i1 * 3 + 1]-pos[i0 * 3 + 1] ,
+                                pos[i1 * 3 + 2]-pos[i0 * 3 + 2] );
+
+    FbxVector4 v2 = FbxVector4( pos[i2 * 3 + 0]-pos[i0 * 3 + 0] ,
+                                pos[i2 * 3 + 1]-pos[i0 * 3 + 1] ,
+                                pos[i2 * 3 + 2]-pos[i0 * 3 + 2] );
+
+    
+    return( v1.CrossProduct(v2).SquareLength() < 0.000000001 );
+    
 
 }
 
