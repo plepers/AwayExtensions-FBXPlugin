@@ -866,6 +866,7 @@ void GeomExporter::doExport(FbxObject* pObject){
             const int sgOffset 		= mSubMeshes[lsubIndex]->IndexOffset;
 
             tIndices = new unsigned int[ numIndices ];
+            unsigned int tPtr = 0;
 
 
             for( int faceIndexOffset =0; faceIndexOffset < numIndices; faceIndexOffset+=3 )
@@ -957,7 +958,8 @@ void GeomExporter::doExport(FbxObject* pObject){
                         
                     }
                     
-                    tIndices[ newIdxPtr ] = lRemappedIndex;
+                    tIndices[ tPtr ] = lRemappedIndex;
+                    tPtr++;
                 }
 
                 
@@ -973,7 +975,7 @@ void GeomExporter::doExport(FbxObject* pObject){
             SubMeshData *data = new SubMeshData();
             mSubMeshes[lsubIndex]->data = data;
             
-            data->numIndices = numIndices;
+            data->numIndices = tPtr;
             data->numVertices = lsgNumVertices;
             data->bonesPerVertex = lBonesPerVertex;
 
@@ -1178,7 +1180,7 @@ void GeomExporter::doExport(FbxObject* pObject){
 
             AWD_str_ptr i_str;
             i_str.ui32 = mSubMeshes[lsubIndex]->data->indices;
-            subGeom->add_stream(TRIANGLES, AWD_FIELD_UINT16, i_str, mSubMeshes[lsubIndex]->TriangleCount * TRIANGLE_VERTEX_COUNT );
+            subGeom->add_stream(TRIANGLES, AWD_FIELD_UINT16, i_str, mSubMeshes[lsubIndex]->data->numIndices );
 
             if (lHasNormal)
             {
@@ -1258,7 +1260,7 @@ bool GeomExporter::isColinear( awd_float64* pos, unsigned int * tri  ){
                                 pos[i2 * 3 + 2]-pos[i0 * 3 + 2] );
 
     
-    return( v1.CrossProduct(v2).SquareLength() < 0.000000001 );
+    return( v1.CrossProduct(v2).SquareLength() < 0.0000000001 );
     
 
 }
