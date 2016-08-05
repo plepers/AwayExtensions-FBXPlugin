@@ -81,6 +81,9 @@ void Settings::FillDefaultValues( FbxIOSettings *pIOS ){
         if( ! geom_tgt( pIOS ).IsValid() ) {
             pIOS->AddProperty(IOPluginGroup, EXPORT_GEOM_TGT,    FbxBoolDT, "export tangents",      &default_geom_tangent );
         }
+        if( ! geom_bnr( pIOS ).IsValid() ) {
+            pIOS->AddProperty(IOPluginGroup, EXPORT_GEOM_BNR,    FbxBoolDT, "export binormals",     &default_geom_binorm );
+        }
         if( ! geom_clr( pIOS ).IsValid() ) {
             pIOS->AddProperty(IOPluginGroup, EXPORT_GEOM_CLR,    FbxBoolDT, "export vertex colors", &default_geom_color );
         }

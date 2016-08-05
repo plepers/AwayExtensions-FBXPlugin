@@ -94,6 +94,7 @@ int main(int argc, char** argv)
         vdataEnums.push_back( G_INCLUDES_UV2 );
         vdataEnums.push_back( G_INCLUDES_NRM );
         vdataEnums.push_back( G_INCLUDES_TGT );
+        vdataEnums.push_back( G_INCLUDES_BNR );
         vdataEnums.push_back( G_INCLUDES_CLR );
         vdataEnums.push_back( G_INCLUDES_SKN );
         TCLAP::ValuesConstraint<std::string> allowedVdata( vdataEnums );
@@ -161,7 +162,7 @@ int main(int argc, char** argv)
         }
         
         if( streamExcArg.isSet() || streamIncArg.isSet() ){
-            exportUv = exportUv2 = exportNormal  = exportTangent = exportBinorm = exportColor = streamDefault;
+            exportUv = exportUv2 = exportNormal  = exportTangent = exportBinorm = exportColor = exportSkin = streamDefault;
             
             for(std::vector<std::string>::iterator it = streamList.begin(); it != streamList.end(); ++it)
             {
@@ -278,6 +279,7 @@ int main(int argc, char** argv)
         settings->set_scale(            sceneScale );
         settings->set_tootle_optims(    tootleOptim );
         
+        
         settings->set_export_geom_uv (  exportUv      );
         settings->set_export_geom_uv2(  exportUv2     );
         settings->set_export_geom_nrm(  exportNormal  );
@@ -285,6 +287,7 @@ int main(int argc, char** argv)
         settings->set_export_geom_bnr(  exportBinorm );
         settings->set_export_geom_clr(  exportColor   );
         settings->set_export_geom_skn(  exportSkin    );
+
 
         delete settings;
         

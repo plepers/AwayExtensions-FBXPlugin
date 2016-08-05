@@ -197,6 +197,8 @@ void GeomExporter::doExport(FbxObject* pObject){
     bool lHasUV2      = mContext->GetSettings()->get_export_geom_uv2() && pMesh->GetElementUVCount() > 1;
     bool lHasVC       = mContext->GetSettings()->get_export_geom_clr() && pMesh->GetElementVertexColorCount() > 0;
     bool lHasSkin     = mContext->GetSettings()->get_export_geom_skn() && pMesh->GetDeformerCount( FbxDeformer::eSkin ) > 0;
+    
+    
 
     FbxGeometryElement::EMappingMode lMappingMode = FbxGeometryElement::eNone;
     FbxGeometryElement::EMappingMode vcMappingMode = FbxGeometryElement::eNone;
