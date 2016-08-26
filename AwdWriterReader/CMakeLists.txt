@@ -12,6 +12,7 @@ set( AwdWriterReader_SOURCES
   GeomExporter.cxx
   MaterialExporter.cxx
   TextureExporter.cxx
+  SkeletonExporter.cxx
   ExportContext.cxx
   utils.cxx
   tootle.cxx
@@ -28,6 +29,7 @@ set( AwdWriterReader_SOURCES
   GeomExporter.h
   GeomData.h
   MaterialExporter.h
+  SkeletonExporter.h
   TextureExporter.h
   ExportContext.h
   utils.h

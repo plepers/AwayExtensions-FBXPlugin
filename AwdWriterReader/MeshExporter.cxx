@@ -65,6 +65,13 @@ void MeshExporter::doExport(FbxObject* pObj){
     awdMesh->set_parent( parent );
     
     
+    // Animator binding.
+    // if geom is skinned, an animator have been exported by Geom
+    // add this mesh instance in targets of the animator
+    
+    AWDAnimator* animator = mContext->GetAnimatorsMap()->Get( lMesh );
+    animator->add_target( awdMesh );
+    
     
     // retreive materials
     // 

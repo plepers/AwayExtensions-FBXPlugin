@@ -20,7 +20,7 @@
 class ExportContext
 {
 public:
-    ExportContext( FbxIOSettings* pSettings, FbxManager* pFbxMngr );
+    ExportContext( FbxIOSettings* pSettings, FbxScene* pScene, FbxManager* pFbxMngr );
     ~ExportContext();
     
     
@@ -35,8 +35,18 @@ public:
     inline FbxManager* GetFbxManager() {
         return mManager;
     }
+    
+    inline FbxScene* GetFbxScene() {
+        return mScene;
+    }
+    
     inline Settings* GetSettings() {
         return mSettings;
+    }
+    
+    
+    inline BlocksMap<AWDAnimator>* GetAnimatorsMap() {
+        return mAnimatorsMap;
     }
     
     
@@ -61,9 +71,13 @@ public:
     
 private:
     FbxManager              *mManager;
+    FbxScene                *mScene;
     AWD                     *mAwd;
     BlocksMap<AWDBlock>     *mBlocksMap;
     Settings                *mSettings;
+    
+    
+    BlocksMap<AWDAnimator>  *mAnimatorsMap;
     
 };
 

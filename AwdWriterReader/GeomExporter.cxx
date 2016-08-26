@@ -13,6 +13,7 @@
 
 #include "GeomExporter.h"
 #include "MaterialExporter.h"
+#include "SkeletonExporter.h"
 #include "utils.h"
 
 
@@ -65,6 +66,22 @@ void GeomExporter::setup( ExportContext *context, ExporterProvider *provider )
 bool GeomExporter::isHandleObject( FbxObject *pObj ){
     return ( pObj->Is<FbxMesh>() );
 }
+
+
+
+void GeomExporter::handleSkin( FbxSkin* skin, FbxMesh* mesh ){
+    
+    
+    SkeletonExporter *skelExporter = new SkeletonExporter();
+    skelExporter->setup( mContext, mExporters );
+    
+    skelExporter->exportAnimator( skin, mesh  );
+    
+    skelExporter->release();
+
+    
+}
+
 
 
 void GeomExporter::doExport(FbxObject* pObject){
@@ -280,8 +297,8 @@ void GeomExporter::doExport(FbxObject* pObject){
 
     if( lHasSkin && !lAllByControlPoint ){
         // todo : if it can happen, find a way to export skin by polygon vertex
-        FBXSDK_printf("WARN : skin can't be exported, not by control points" );
-        lHasSkin = false;
+//        FBXSDK_printf("WARN : skin can't be exported, not by control points\n" );
+//        lHasSkin = false;
     }
 
 
@@ -328,10 +345,6 @@ void GeomExporter::doExport(FbxObject* pObject){
         lVCs = new awd_float64[lPolygonVertexCount * 3];
     }
 
-    if( lHasSkin ) {
-        lSkinWeights = new awd_float64[lPolygonVertexCount * lBonesPerVertex];
-        lSkinIndices = new awd_uint32[lPolygonVertexCount * lBonesPerVertex];
-    }
 
     FbxStringList lUVNames;
     pMesh->GetUVSetNames(lUVNames);
@@ -383,6 +396,181 @@ void GeomExporter::doExport(FbxObject* pObject){
     
     
     
+    
+    // skin export
+    // -------------------------------------
+    
+    awd_float64 * vSkinWeights = NULL;
+    awd_uint32  * vSkinIndices = NULL;
+
+    if( lHasSkin )
+    {
+        // allocate stream to MAX_BONES_PER_VERTEX
+        
+        
+        vSkinWeights = new awd_float64[lPolygonVertexCount * lBonesPerVertex];
+        vSkinIndices = new awd_uint32[lPolygonVertexCount * lBonesPerVertex];
+        
+        memset( vSkinWeights, 0, lPolygonVertexCount * lBonesPerVertex * sizeof(awd_float64) );
+        memset( vSkinIndices, 0, lPolygonVertexCount * lBonesPerVertex * sizeof(awd_uint32) );
+        
+        
+        
+        FbxSkin *skin = (FbxSkin *) pMesh->GetDeformer( 0, FbxDeformer::eSkin );
+        
+        // Export a skeleton for this skin
+        handleSkin( skin, pMesh );
+        
+        
+        
+        
+        
+        
+        
+        int lClusterCount = skin->GetClusterCount();
+        int lClusterIndex;
+        
+        // first find maximum number of bones per vertex
+        // for further allocations
+        //
+        char *numClusterPerVertex = new char[ lPolygonVertexCount ];
+        memset( numClusterPerVertex, 0, lPolygonVertexCount * sizeof(char) );
+        int lMaxInfluences = 0;
+        
+        for( lClusterIndex = 0; lClusterIndex != lClusterCount; ++lClusterIndex )
+        {
+            
+            FbxCluster* lCluster = skin->GetCluster( lClusterIndex );
+            
+            FbxString linkName = lCluster->GetLink()->GetName();
+            //FBXSDK_printf( "link name %s \n", linkName.Buffer() );
+            
+            
+            
+            int lClusterIndicesCount = lCluster->GetControlPointIndicesCount();
+            int* lClusterVIndices = lCluster->GetControlPointIndices();
+            double* lClusterVWeights = lCluster->GetControlPointWeights();
+            int lCurrentClusterSlot;
+            
+            for(int k = 0; k < lClusterIndicesCount; k++)
+            {
+                int lcvIndex = lClusterVIndices[k];
+                int vindex;
+                double lcvWeight = lClusterVWeights[k];
+                
+//                if( lcvWeight > 1.0 ){
+//                    FBXSDK_printf("--------WARN lcvWeight > 1 %f \n", lcvWeight );
+//                }
+                
+                lCurrentClusterSlot = numClusterPerVertex[lcvIndex];
+                
+                if( lCurrentClusterSlot >= MAX_BONES_PER_VERTEX )
+                {
+                    
+                    FBXSDK_printf("MAX BONE OVERFLOW \n" );
+                    // no more room for more bones (4 weights per vertex)
+                    // find the lower weight and replace it, if found.
+                    
+                    int nIndex = 0;
+                    double lowerWeight = 999.0;
+                    
+                    for( int lrep = 0; lrep < MAX_BONES_PER_VERTEX; lrep++ )
+                    {
+                        vindex = lcvIndex*MAX_BONES_PER_VERTEX + lrep;
+                        if( vSkinWeights[vindex] < lowerWeight ) {
+                            lowerWeight = vSkinWeights[vindex];
+                            nIndex = lrep;
+                        }
+                    }
+                    
+                    if( lowerWeight < lcvWeight ){
+                        vindex = lcvIndex*MAX_BONES_PER_VERTEX + nIndex;
+                        vSkinWeights[vindex] = lcvWeight;
+                        vSkinIndices[vindex] = lClusterIndex;
+                    }
+                    
+                } else
+                {
+                    vindex = lcvIndex*MAX_BONES_PER_VERTEX + lCurrentClusterSlot;
+                    vSkinWeights[vindex] = lcvWeight;
+                    vSkinIndices[vindex] = lClusterIndex;
+                }
+                
+                
+                if( lMaxInfluences < lCurrentClusterSlot ){
+                    lMaxInfluences = lCurrentClusterSlot;
+                }
+                
+                numClusterPerVertex[lcvIndex]++;
+            }
+            
+        }
+        
+        for(int k = 0; k < lPolygonVertexCount; k++)
+        {
+//            FBXSDK_printf("%i", k );
+            for (int bbb=0; bbb<MAX_BONES_PER_VERTEX; bbb++) {
+//                FBXSDK_printf(" -  %i %f \n", vSkinIndices[k*MAX_BONES_PER_VERTEX+bbb], vSkinWeights[k*MAX_BONES_PER_VERTEX+bbb] );
+                double weight = vSkinWeights[k*MAX_BONES_PER_VERTEX+bbb];
+                if( weight > 1.0 ){
+                    FBXSDK_printf("WARN weight > 1 %f \n", weight );
+                }
+            }
+//            FBXSDK_printf("\n");
+            
+        }
+        
+        // if max influence is lower than default num bones per vertex
+        // reallocate stream
+        //
+        
+        lMaxInfluences++;
+        
+        if( lMaxInfluences < MAX_BONES_PER_VERTEX ) {
+            
+            awd_float64 * rSkinWeights = new awd_float64[lPolygonVertexCount * lMaxInfluences];
+            awd_uint32   * rSkinIndices = new awd_uint32[lPolygonVertexCount * lMaxInfluences];
+            
+            for(int k = 0; k < lPolygonVertexCount; k++)
+            {
+                memcpy( &rSkinWeights[k*lMaxInfluences], &vSkinWeights[k*MAX_BONES_PER_VERTEX], lMaxInfluences*sizeof(awd_float64) );
+                memcpy( &rSkinIndices[k*lMaxInfluences], &vSkinIndices[k*MAX_BONES_PER_VERTEX], lMaxInfluences*sizeof(awd_uint32) );
+            }
+            
+            lBonesPerVertex = lMaxInfluences;
+            
+            delete vSkinIndices;
+            delete vSkinWeights;
+            
+            vSkinWeights = rSkinWeights;
+            vSkinIndices = rSkinIndices;
+            
+        }
+        
+        
+        delete[] numClusterPerVertex;
+        
+        
+        
+        // if all by control points we already build skin streams
+        // ------------------------------------------------------
+        if( lAllByControlPoint ){
+            lSkinWeights = vSkinWeights;
+            lSkinIndices = vSkinIndices;
+            vSkinWeights = NULL;
+            vSkinIndices = NULL;
+        } 
+        // else allocate the final stream to correct num bones per vertex for futur set
+        else {
+            lSkinWeights = new awd_float64[lPolygonVertexCount * lMaxInfluences];
+            lSkinIndices = new awd_uint32[lPolygonVertexCount * lMaxInfluences];
+        }
+        
+        
+    }
+    
+    
+    
     if (lAllByControlPoint)
     {
         const FbxGeometryElementNormal *        lNormalElement  = NULL;
@@ -404,120 +592,6 @@ void GeomExporter::doExport(FbxObject* pObject){
         }
 
 
-        // skin export
-        //
-
-        if( lHasSkin )
-        {
-            FbxSkin *skin = (FbxSkin *) pMesh->GetDeformer( 0, FbxDeformer::eSkin );
-
-            int lClusterCount = skin->GetClusterCount();
-            int lClusterIndex;
-
-            // first find maximum number of bones per vertex
-            // for further allocations
-            //
-            char *numClusterPerVertex = new char[ lPolygonVertexCount ];
-            memset( numClusterPerVertex, 0, lPolygonVertexCount * sizeof(char) );
-            int lMaxInfluences = 0;
-
-            for( lClusterIndex = 0; lClusterIndex != lClusterCount; ++lClusterIndex )
-            {
-
-                FbxCluster* lCluster = skin->GetCluster( lClusterIndex );
-
-                FbxNode* link = lCluster->GetLink();
-                FbxNodeAttribute* linkAttrib = link->GetNodeAttribute();
-                FbxNodeAttribute::EType nType = linkAttrib->GetAttributeType();
-                FbxString linkName = lCluster->GetLink()->GetName();
-                FBXSDK_printf( "link name %s \n", linkName.Buffer() );
-
-
-
-                int lClusterIndicesCount = lCluster->GetControlPointIndicesCount();
-                int* lClusterVIndices = lCluster->GetControlPointIndices();
-                double* lClusterVWeights = lCluster->GetControlPointWeights();
-                int lCurrentClusterSlot;
-
-                for(int k = 0; k < lClusterIndicesCount; k++)
-                {
-                    int lcvIndex = lClusterVIndices[k];
-                    int vindex;
-                    double lcvWeight = lClusterVWeights[k];
-                    lCurrentClusterSlot = numClusterPerVertex[lcvIndex];
-
-                    if( lCurrentClusterSlot >= MAX_BONES_PER_VERTEX )
-                    {
-                        // no more room for more bones (4 weights per vertex)
-                        // find the lower weight and replace it, if found.
-
-                        int nIndex = 0;
-                        double lowerWeight = 999.0;
-
-                        for( int lrep = 0; lrep < MAX_BONES_PER_VERTEX; lrep++ )
-                        {
-                            vindex = lcvIndex*MAX_BONES_PER_VERTEX + lrep;
-                            if( lSkinWeights[vindex] < lowerWeight ) {
-                                lowerWeight = lSkinWeights[vindex];
-                                nIndex = lrep;
-                            }
-                        }
-
-                        if( lowerWeight < lcvWeight ){
-                            vindex = lcvIndex*MAX_BONES_PER_VERTEX + nIndex;
-                            lSkinWeights[vindex] = lcvWeight;
-                            lSkinIndices[vindex] = lClusterIndex;
-                        }
-
-                    } else
-                    {
-                        vindex = lcvIndex*MAX_BONES_PER_VERTEX + lCurrentClusterSlot;
-                        lSkinWeights[vindex] = lcvWeight;
-                        lSkinIndices[vindex] = lClusterIndex;
-                    }
-
-
-                    if( lMaxInfluences < lCurrentClusterSlot ){
-                        lMaxInfluences = lCurrentClusterSlot;
-                    }
-
-                    numClusterPerVertex[lcvIndex]++;
-                }
-
-            }
-
-            // if max influence is lower than default num bones per vertex
-            // reallocate stream
-            //
-
-            lMaxInfluences++;
-
-            if( lMaxInfluences < MAX_BONES_PER_VERTEX ) {
-
-                awd_float64 * rSkinWeights = new awd_float64[lPolygonVertexCount * lMaxInfluences];
-                awd_uint32   * rSkinIndices = new awd_uint32[lPolygonVertexCount * lMaxInfluences];
-
-                for(int k = 0; k < lPolygonVertexCount; k++)
-                {
-                    memcpy( &rSkinWeights[k*lMaxInfluences], &lSkinWeights[k*MAX_BONES_PER_VERTEX], lMaxInfluences*sizeof(awd_float64) );
-                    memcpy( &rSkinIndices[k*lMaxInfluences], &lSkinIndices[k*MAX_BONES_PER_VERTEX], lMaxInfluences*sizeof(awd_uint32) );
-                }
-
-                lBonesPerVertex = lMaxInfluences;
-
-                delete lSkinIndices;
-                delete lSkinWeights;
-
-                lSkinWeights = rSkinWeights;
-                lSkinIndices = rSkinIndices;
-
-            }
-
-
-            delete[] numClusterPerVertex;
-
-
-        }
 
 
         // export vertices attributes, by control points
@@ -632,7 +706,11 @@ void GeomExporter::doExport(FbxObject* pObject){
 //        }
 //    }
 
-
+    
+    
+    
+    
+    
 
     // Loop in polygons to create indices buffer
     // Export attributes, if not by control points
@@ -668,6 +746,13 @@ void GeomExporter::doExport(FbxObject* pObject){
                 lVertices[lVertexCount * 3 + 1] = lCurrentVertex[1];
                 lVertices[lVertexCount * 3 + 2] = lCurrentVertex[2];
 
+
+                if( lHasSkin ){
+                    for (int ski = 0; ski < lBonesPerVertex; ++ski){
+                        lSkinWeights[lVertexCount * lBonesPerVertex + ski] = vSkinWeights[ lControlPointIndex * lBonesPerVertex + ski];
+                        lSkinIndices[lVertexCount * lBonesPerVertex + ski] = vSkinIndices[ lControlPointIndex * lBonesPerVertex + ski];
+                    }
+                }
 
                 if (lHasNormal)
                 {

@@ -14,11 +14,14 @@
 
 
 
-ExportContext::ExportContext( FbxIOSettings* pSettings, FbxManager* pFbxMngr )
+ExportContext::ExportContext( FbxIOSettings* pSettings, FbxScene* pScene, FbxManager* pFbxMngr )
 {
     mSettings = new Settings( pSettings );
-    mBlocksMap = new BlocksMap<AWDBlock>();
-    mManager = pFbxMngr;
+    mManager  = pFbxMngr;
+    mScene    = pScene;
+    
+    mBlocksMap    = new BlocksMap<AWDBlock>();
+    mAnimatorsMap = new BlocksMap<AWDAnimator>();
     
     BlockSettings *lBlockSettings = new BlockSettings( false, false, false, false, 1.0 );
     mSettings->setupBlockSettings(lBlockSettings);
@@ -76,7 +79,7 @@ void ExportContext::add_skeleton_anim(AWDSkeletonAnimation * block, FbxObject *p
 }
 void ExportContext::add_animator(AWDAnimator * block, FbxObject *pObj ){
     mAwd->add_animator( block );
-    mBlocksMap->Set( pObj, block );
+    mAnimatorsMap->Set( pObj, block );
 }
 void ExportContext::add_uv_anim(AWDUVAnimation * block, FbxObject *pObj ){
     mAwd->add_uv_anim( block );
