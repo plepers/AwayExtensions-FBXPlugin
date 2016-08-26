@@ -467,7 +467,7 @@ void GeomExporter::doExport(FbxObject* pObject){
                 if( lCurrentClusterSlot >= MAX_BONES_PER_VERTEX )
                 {
                     
-                    FBXSDK_printf("MAX BONE OVERFLOW \n" );
+//                    FBXSDK_printf("MAX BONE OVERFLOW \n" );
                     // no more room for more bones (4 weights per vertex)
                     // find the lower weight and replace it, if found.
                     
@@ -1316,7 +1316,7 @@ void GeomExporter::doExport(FbxObject* pObject){
 
                 AWD_str_ptr si_str;
                 si_str.ui32 = mSubMeshes[lsubIndex]->data->skinIndices;
-                subGeom->add_stream(JOINT_INDICES, AWD_FIELD_UINT16, si_str, mSubMeshes[lsubIndex]->data->numVertices * lBonesPerVertex);
+                subGeom->add_stream(JOINT_INDICES, AWD_FIELD_UINT8, si_str, mSubMeshes[lsubIndex]->data->numVertices * lBonesPerVertex);
             }
 
             geom->add_sub_mesh( subGeom );
