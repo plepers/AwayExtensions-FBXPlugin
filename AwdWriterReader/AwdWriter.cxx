@@ -118,13 +118,16 @@ ExporterProvider* AwdWriter::CreateExporterProvider(){
 
 
 
+
+
 // Pre-process the scene before write it out
 bool AwdWriter::PreprocessScene( FbxScene& pScene )
 {
+    
 //    FbxAxisSystem *axis = new FbxAxisSystem( FbxAxisSystem::eYAxis, FbxAxisSystem::eParityOdd, FbxAxisSystem::eLeftHanded );
 //    axis->ConvertScene( &pScene );
     
-    FbxAxisSystem::MayaYUp.ConvertScene( &pScene );
+//    FbxAxisSystem::MayaYUp.ConvertScene( &pScene );
     
 //     FbxAxisSystem::Max.ConvertScene( &pScene );
     //FbxAxisSystem::DirectX.ConvertScene( &pScene );
@@ -134,6 +137,7 @@ bool AwdWriter::PreprocessScene( FbxScene& pScene )
     
     mExporters = CreateExporterProvider();
     mContext = new ExportContext( s, &pScene, mManager );
+    
     
     return true;
 }

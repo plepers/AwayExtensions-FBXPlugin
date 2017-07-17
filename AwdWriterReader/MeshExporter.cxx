@@ -26,11 +26,24 @@ void MeshExporter::doExport(FbxObject* pObj){
     FbxNode *pNode = (FbxNode*) pObj;
     
     
+    
+    FbxAMatrix lLocal;
+    FbxAMatrix lInvLocal;
+    double *rawMatrix  = new double[ 12 ];
+    lLocal = pNode->EvaluateLocalTransform( FBXSDK_TIME_INFINITE, FbxNode::eSourcePivot, true, true);
+    lInvLocal = lLocal.Inverse();
+    AwdUtils::FbxMatrixTo4x3( &lLocal, rawMatrix );
+    
+    
+    
+    
     // export Geometry
     
     AWDTriGeom *geomBlock = NULL;
     
     FbxMesh *lMesh = pNode->GetMesh();
+    lMesh->SetPivot( lInvLocal );
+    lMesh->ApplyPivot();
     
     if( lMesh )
     {
@@ -59,9 +72,21 @@ void MeshExporter::doExport(FbxObject* pObj){
     const char *name = pNode->GetName();
     AWDMeshInst* awdMesh = new AWDMeshInst( name, static_cast<unsigned short>(strlen(name)), geomBlock );
     
-    AwdUtils::CopyNodeTransform( pNode, awdMesh );
+    
+    
+    
+    awdMesh->set_transform( rawMatrix );
+    
+    
+    
     
     AWDSceneBlock *parent = (AWDSceneBlock*) mContext->GetBlocksMap()->Get( pNode->GetParent() );
+    
+    
+    // handle pivot as intermediate container
+    
+    
+    
     awdMesh->set_parent( parent );
     
     
