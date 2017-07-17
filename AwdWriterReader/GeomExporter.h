@@ -33,6 +33,7 @@ public:
 private:
     
     bool isColinear( awd_float64* pos, unsigned int * tri );
+    void handleSkin( FbxSkin* skin, FbxMesh* mesh );
     
 };
 

@@ -125,14 +125,15 @@ bool AwdWriter::PreprocessScene( FbxScene& pScene )
 //    axis->ConvertScene( &pScene );
     
     FbxAxisSystem::MayaYUp.ConvertScene( &pScene );
-    // FbxAxisSystem::Max.ConvertScene( &pScene );
+    
+//     FbxAxisSystem::Max.ConvertScene( &pScene );
     //FbxAxisSystem::DirectX.ConvertScene( &pScene );
     
     
     FbxIOSettings* s = GetIOSettings();
     
     mExporters = CreateExporterProvider();
-    mContext = new ExportContext( s, mManager );
+    mContext = new ExportContext( s, &pScene, mManager );
     
     return true;
 }
