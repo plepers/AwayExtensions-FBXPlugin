@@ -70,7 +70,9 @@ void MeshExporter::doExport(FbxObject* pObj){
     // add this mesh instance in targets of the animator
     
     AWDAnimator* animator = mContext->GetAnimatorsMap()->Get( lMesh );
-    animator->add_target( awdMesh );
+    if( animator ){
+        animator->add_target( awdMesh );
+    }
     
     
     // retreive materials

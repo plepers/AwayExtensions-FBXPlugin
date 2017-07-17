@@ -1345,7 +1345,9 @@ bool GeomExporter::isColinear( awd_float64* pos, unsigned int * tri  ){
     FbxVector4 v2 = FbxVector4( pos[i2 * 3 + 0]-pos[i0 * 3 + 0] ,
                                 pos[i2 * 3 + 1]-pos[i0 * 3 + 1] ,
                                 pos[i2 * 3 + 2]-pos[i0 * 3 + 2] );
-
+    
+    v1.Normalize();
+    v2.Normalize();
     
     return( v1.CrossProduct(v2).SquareLength() < 0.0000000001 );
     

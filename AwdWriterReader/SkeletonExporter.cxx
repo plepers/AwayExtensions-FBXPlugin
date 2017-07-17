@@ -140,6 +140,8 @@ AWDSkeletonPose* SkeletonExporter::CreateSkeletonPoseAtTime( FbxTime time, FbxSk
 
 FbxTimeSpan SkeletonExporter::getSkinAnimationTimespan( FbxAnimStack* animStack, FbxSkin *skin ){
     
+    FbxSetGlobalTimeMode( FbxTime::ePAL );//FbxTime::EMode )
+    
     int lClusterCount = skin->GetClusterCount();
     
     
@@ -169,6 +171,8 @@ AWDSkeletonAnimation* SkeletonExporter::exportAnimation( FbxAnimStack* animStack
     
     
     FbxTimeSpan AnimTimeSpan = getSkinAnimationTimespan(animStack, skin );
+    
+//    AnimTimeSpan.GetStart().SetGlobalTimeMode( FbxTime::ePAL );
     //bool isAnimated = firstNode->GetAnimationInterval( AnimTimeSpan, animStack );
     
     FBXSDK_printf( "export Animation \n" );
@@ -183,8 +187,8 @@ AWDSkeletonAnimation* SkeletonExporter::exportAnimation( FbxAnimStack* animStack
     
     
     FBXSDK_printf( "export Animation %s \n", name.Buffer() );
-    FBXSDK_printf( "   start %lli \n", AnimTimeSpan.GetStart().GetFrameCount() );
-    FBXSDK_printf( "   start %lli \n", AnimTimeSpan.GetStop().GetFrameCount() );
+    FBXSDK_printf( "   %lli to %lli \n", AnimTimeSpan.GetStart().GetFrameCount(), AnimTimeSpan.GetStop().GetFrameCount() );
+
     
     
     FbxLongLong startFrame = AnimTimeSpan.GetStart().GetFrameCount();
