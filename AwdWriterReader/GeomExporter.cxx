@@ -20,6 +20,8 @@
 
 #include <sys/time.h>
 
+#define FLIPFACES_IF_LEFTHANDED 1
+
 long getCurrentMs(){
     timeval time;
     gettimeofday(&time, NULL);
@@ -118,8 +120,22 @@ void GeomExporter::doExport(FbxObject* pObject){
     FBX_ASSERT_MSG( nodeAttribute->GetAttributeType() == FbxNodeAttribute::eMesh, "Triangulated object isn't a eMesh");
 
     pMesh = (FbxMesh*) nodeAttribute;
+    
+  
 
-
+    FbxAMatrix pivotMatrix;
+    pivotMatrix.SetIdentity();
+    
+    pivotMatrix.SetT( pMesh->GetNode()->GetGeometricTranslation(FbxNode::eSourcePivot)  );
+    pivotMatrix.SetR( pMesh->GetNode()->GetGeometricRotation(FbxNode::eSourcePivot)  );
+    pivotMatrix.SetS( pMesh->GetNode()->GetGeometricScaling(FbxNode::eSourcePivot)  );
+    
+    
+//    FBXSDK_printf("is pivot right hand %i \n", pivotMatrix.IsRightHand() );
+    bool isRightHanded = pivotMatrix.IsRightHand();
+    
+    pMesh->SetPivot( pivotMatrix );
+    pMesh->ApplyPivot();
 
 
     const int lPolygonCount = pMesh->GetPolygonCount();
@@ -828,8 +844,32 @@ void GeomExporter::doExport(FbxObject* pObject){
         mSubMeshes[lMaterialIndex]->TriangleCount += 1;
     }
 
+    #if FLIPFACES_IF_LEFTHANDED == 1
+    if( !isRightHanded ){
+        for( int i =0; i< lPolygonCount; i++ ){
+            unsigned int a = lIndices[i*3];
+            lIndices[i*3] = lIndices[i*3+1];
+            lIndices[i*3+1] = a;
+        }
+        
+        if (lHasNormal)
+        {
+            for( int i =0; i< lVertexCount*3; i++ ){
+                lNormals[i] *= -1.0f;
+            }
+            
+        }
+        
+        if (lHasTangent)
+        {
+            for( int i =0; i< lVertexCount*3; i++ ){
+                lTangents[i] *= -1.0f;
+            }
+        }
 
-
+        
+    }
+    #endif
 
 
 
@@ -1121,7 +1161,7 @@ void GeomExporter::doExport(FbxObject* pObject){
     }
     
     if( _colinears > 0){
-        FBXSDK_printf("%i colinear triangles found\n", _colinears );
+       // FBXSDK_printf("%i colinear triangles found\n", _colinears );
     }
 
 

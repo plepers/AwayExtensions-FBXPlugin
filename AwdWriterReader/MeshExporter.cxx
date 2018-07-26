@@ -30,7 +30,7 @@ void MeshExporter::doExport(FbxObject* pObj){
     FbxAMatrix lLocal;
     FbxAMatrix lInvLocal;
     double *rawMatrix  = new double[ 12 ];
-    lLocal = pNode->EvaluateLocalTransform( FBXSDK_TIME_INFINITE, FbxNode::eSourcePivot, true, true);
+    lLocal = pNode->EvaluateLocalTransform( FBXSDK_TIME_ZERO, FbxNode::eSourcePivot, false, true);
     lInvLocal = lLocal.Inverse();
     AwdUtils::FbxMatrixTo4x3( &lLocal, rawMatrix );
     
@@ -42,8 +42,8 @@ void MeshExporter::doExport(FbxObject* pObj){
     AWDTriGeom *geomBlock = NULL;
     
     FbxMesh *lMesh = pNode->GetMesh();
-    lMesh->SetPivot( lInvLocal );
-    lMesh->ApplyPivot();
+//    lMesh->SetPivot( lInvLocal );
+//    lMesh->ApplyPivot();
     
     if( lMesh )
     {
